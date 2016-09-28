@@ -30,6 +30,8 @@ LOCAL_PATH := $(call my-dir)
 # $(3): "libgtest_main" or empty.
 # $(4): Variant. Can be "_host", "_ndk", or empty.
 # $(5): NDK STL if $(4) is "_ndk", else empty.
+#
+# Use -Wno-unnamed-type-template-args because gtest_unittest.cc wants anonymous enum type.
 define gtest-unit-test
     $(eval include $(CLEAR_VARS)) \
     $(eval LOCAL_MODULE := \
@@ -38,6 +40,7 @@ define gtest-unit-test
     $(eval LOCAL_SRC_FILES := test/$(strip $(1)).cc $(2)) \
     $(eval LOCAL_C_INCLUDES := $(LOCAL_PATH)/include) \
     $(eval LOCAL_CPP_FEATURES := rtti) \
+    $(eval LOCAL_CFLAGS := -Wno-unnamed-type-template-args) \
     $(eval LOCAL_STATIC_LIBRARIES := \
         $(if $(3),$(3)$(4)$(if $(5),_$(5))) libgtest$(4)$(if $(5),_$(5))) \
     $(if $(findstring _ndk,$(4)),$(eval LOCAL_LDLIBS := -ldl)) \
