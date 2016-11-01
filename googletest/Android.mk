@@ -110,22 +110,63 @@ ifdef NDK_ROOT
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := libgtest
-LOCAL_CPP_EXTENSION := .cc
 LOCAL_SRC_FILES := src/gtest-all.cc
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/src $(LOCAL_PATH)/include
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/include
-LOCAL_RTTI_FLAG := -frtti
+LOCAL_CPP_FEATURES := rtti
+include $(BUILD_STATIC_LIBRARY)
+
+# Note: Unlike the platform, libgtest_main carries a dependency on libgtest.
+# Users don't need to manually depend on both.
+include $(CLEAR_VARS)
+LOCAL_MODULE := libgtest_main
+LOCAL_SRC_FILES := src/gtest_main.cc
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/src $(LOCAL_PATH)/include
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_CPP_FEATURES := rtti
+LOCAL_STATIC_LIBRARIES := libgtest
+include $(BUILD_STATIC_LIBRARY)
+
+# These are the old names of these libraries. They don't match the platform or
+# the upstream build, but we've been requiring that people put them in their NDK
+# makefiles for years.
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := googletest_static
+LOCAL_SRC_FILES := src/gtest-all.cc
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/src $(LOCAL_PATH)/include
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_CPP_FEATURES := rtti
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := libgtest_main
+LOCAL_MODULE := libgoogletest_main
 LOCAL_CPP_EXTENSION := .cc
 LOCAL_SRC_FILES := src/gtest_main.cc
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/src $(LOCAL_PATH)/include
-LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/include
-LOCAL_RTTI_FLAG := -frtti
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_CPP_FEATURES := rtti
+LOCAL_STATIC_LIBRARIES := libgtest
+include $(BUILD_STATIC_LIBRARY)
+
+# The NDK used to include shared versions of these libraries, for some reason.
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := googletest_shared
+LOCAL_SRC_FILES := src/gtest-all.cc
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/src $(LOCAL_PATH)/include
+LOCAL_CFLAGS := -DGTEST_CREATE_SHARED_LIBRARY
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_CPP_FEATURES := rtti
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := googletest_main_shared
+LOCAL_SRC_FILES := src/gtest_main.cc
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/src $(LOCAL_PATH)/include
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_CPP_FEATURES := rtti
+LOCAL_SHARED_LIBRARIES := googletest_shared
 include $(BUILD_STATIC_LIBRARY)
 
 else
