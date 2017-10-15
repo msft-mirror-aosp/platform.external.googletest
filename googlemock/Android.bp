@@ -18,7 +18,13 @@ cc_defaults {
     local_include_dirs: ["include"],
     export_include_dirs: ["include"],
 
-    cflags: ["-Wno-missing-field-initializers", "-Wno-unused-parameter"],
+    cflags: [
+        "-Wall",
+        "-Werror",
+        "-Wno-missing-field-initializers",
+        "-Wno-sign-compare",
+        "-Wno-unused-parameter",
+    ],
 }
 
 cc_defaults {
