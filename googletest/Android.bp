@@ -14,17 +14,16 @@
 
 cc_defaults {
     name: "libgtest_defaults",
-    local_include_dirs: [
-        "include",
-    ],
-    export_include_dirs: [
-        "include",
-    ],
+    export_include_dirs: ["include"],
+    cflags: ["-Wall", "-Werror"],
 }
 
 cc_defaults {
     name: "libgtest_host_defaults",
     target: {
+        linux_bionic: {
+            enabled: true,
+        },
         windows: {
             enabled: true,
         },
@@ -91,6 +90,7 @@ cc_library_static {
     name: "libgtest",
     defaults: ["libgtest_defaults", "libgtest_host_defaults"],
     host_supported: true,
+    vendor_available: true,
     srcs: ["src/gtest-all.cc"],
     rtti: true,
 }
@@ -99,7 +99,7 @@ cc_library_static {
     name: "libgtest_main",
     defaults: ["libgtest_defaults", "libgtest_host_defaults"],
     host_supported: true,
-    clang: true,
+    vendor_available: true,
     srcs: ["src/gtest_main.cc"],
 }
 
@@ -120,6 +120,7 @@ cc_library {
     name: "libgtest_prod",
     defaults: ["libgtest_defaults", "libgtest_host_defaults"],
     host_supported: true,
+    vendor_available: true,
     export_include_dirs: ["include"],
 }
 

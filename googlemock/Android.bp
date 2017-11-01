@@ -18,7 +18,13 @@ cc_defaults {
     local_include_dirs: ["include"],
     export_include_dirs: ["include"],
 
-    cflags: ["-Wno-missing-field-initializers"],
+    cflags: [
+        "-Wall",
+        "-Werror",
+        "-Wno-missing-field-initializers",
+        "-Wno-sign-compare",
+        "-Wno-unused-parameter",
+    ],
 }
 
 cc_defaults {
@@ -35,6 +41,9 @@ cc_defaults {
         never: true,
     },
     target: {
+        linux_bionic: {
+            enabled: true,
+        },
         windows: {
             enabled: true,
         },
@@ -61,6 +70,7 @@ cc_library_static {
     srcs: ["src/gmock-all.cc"],
     rtti: true,
     static_libs: ["libgtest"],
+    vendor_available: true,
 }
 
 cc_library_static {
@@ -68,6 +78,7 @@ cc_library_static {
     defaults: ["gmock_defaults", "gmock_flags"],
     srcs: ["src/gmock_main.cc"],
     static_libs: ["libgtest"],
+    vendor_available: true,
 }
 
 // Deprecated: use libgmock instead
