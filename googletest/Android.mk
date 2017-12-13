@@ -61,9 +61,8 @@ endef
 # The NDK variant of gtest-death-test_test is disabled because we don't have
 # pthread_atfork on android-9.
 define gtest-test-suite
-    $(if $(findstring _ndk,$(1)),, \
-        $(eval $(call gtest-unit-test, \
-            gtest-death-test_test,,libgtest_main,$(1),$(2)))) \
+    $(eval $(call gtest-unit-test, \
+        gtest-death-test_test,,libgtest_main,$(1),$(2))) \
     $(eval $(call gtest-unit-test,gtest_environment_test,,,$(1),$(2))) \
     $(eval $(call gtest-unit-test,gtest-filepath_test,, \
         libgtest_main,$(1),$(2))) \
@@ -96,14 +95,12 @@ define gtest-test-suite
         gtest-typed-test_test,test/gtest-typed-test2_test.cc, \
             libgtest_main,$(1),$(2))) \
     $(eval $(call gtest-unit-test,gtest_unittest,,libgtest_main,$(1),$(2))) \
-    $(eval $(call gtest-unit-test,gtest-unittest-api_test,,,$(1),$(2)))
+    $(eval $(call gtest-unit-test,gtest-unittest-api_test,,,$(1),$(2))) \
+    $(eval $(call gtest-unit-test,gtest-printers_test,,libgtest_main,$(1),$(2)))
 endef
 
 # Test is disabled because Android doesn't build gtest with exceptions.
 # $(eval $(call gtest-unit-test,gtest_throw_on_failure_ex_test,,,$(1),$(2)))
-
-# Test is disabled until https://github.com/google/googletest/pull/728 lands.
-# $(eval $(call gtest-unit-test,gtest-printers_test,,libgtest_main,$(1),$(2)))
 
 # If we're being invoked from ndk-build, we'll have NDK_ROOT defined.
 ifdef NDK_ROOT
