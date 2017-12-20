@@ -170,7 +170,6 @@ else
 
 # Tests for the platform built NDK gtest.
 $(call gtest-test-suite,_ndk,stlport)
-$(call gtest-test-suite,_ndk,gnustl)
 $(call gtest-test-suite,_ndk,c++)
 
 # Tests for the host gtest.
