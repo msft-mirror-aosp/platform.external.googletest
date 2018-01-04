@@ -68,23 +68,6 @@ cc_library_static {
     srcs: ["src/gtest_main.cc"],
 }
 
-// gnustl
-cc_library_static {
-    name: "libgtest_ndk_gnustl",
-    defaults: ["libgtest_defaults"],
-    sdk_version: "9",
-    stl: "gnustl_static",
-    srcs: ["src/gtest-all.cc"],
-}
-
-cc_library_static {
-    name: "libgtest_main_ndk_gnustl",
-    defaults: ["libgtest_defaults"],
-    sdk_version: "9",
-    stl: "gnustl_static",
-    srcs: ["src/gtest_main.cc"],
-}
-
 // Platform and host libraries.
 cc_library_static {
     name: "libgtest",
