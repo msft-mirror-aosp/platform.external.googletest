@@ -41,6 +41,7 @@ define gtest-unit-test
     $(eval LOCAL_C_INCLUDES := $(LOCAL_PATH)/include) \
     $(eval LOCAL_CPP_FEATURES := rtti) \
     $(eval LOCAL_CFLAGS := -Wall -Werror -Wno-sign-compare -Wno-unnamed-type-template-args) \
+    $(eval LOCAL_CFLAGS += -Wno-unused-private-field) \
     $(eval LOCAL_STATIC_LIBRARIES := \
         $(if $(3),$(3)$(4)$(if $(5),_$(5))) libgtest$(4)$(if $(5),_$(5))) \
     $(if $(findstring _ndk,$(4)),$(eval LOCAL_LDLIBS := -ldl)) \
