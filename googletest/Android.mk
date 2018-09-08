@@ -63,24 +63,26 @@ endef
 # pthread_atfork on android-9.
 define gtest-test-suite
     $(eval $(call gtest-unit-test, \
-        gtest-death-test_test,,libgtest_main,$(1),$(2))) \
-    $(eval $(call gtest-unit-test,gtest-filepath_test,, \
+        googletest-death-test-test,,libgtest_main,$(1),$(2))) \
+    $(eval $(call gtest-unit-test,googletest-filepath-test,, \
         libgtest_main,$(1),$(2))) \
-    $(eval $(call gtest-unit-test,gtest-linked_ptr_test,, \
+    $(eval $(call gtest-unit-test,googletest-linked-ptr-test,, \
         libgtest_main,$(1),$(2))) \
-    $(eval $(call gtest-unit-test,gtest-listener_test,, \
+    $(eval $(call gtest-unit-test,googletest-listener-test,, \
         libgtest_main,$(1),$(2))) \
-    $(eval $(call gtest-unit-test,gtest-message_test,, \
+    $(eval $(call gtest-unit-test,googletest-message-test,, \
         libgtest_main,$(1),$(2))) \
-    $(eval $(call gtest-unit-test,gtest-options_test,, \
+    $(eval $(call gtest-unit-test,googletest-options-test,, \
         libgtest_main,$(1),$(2))) \
-    $(eval $(call gtest-unit-test,gtest-param-test_test, \
-        test/gtest-param-test2_test.cc,,$(1),$(2))) \
-    $(eval $(call gtest-unit-test,gtest-port_test,,libgtest_main,$(1),$(2))) \
-    $(eval $(call gtest-unit-test,gtest-printers_test,,libgtest_main,$(1),$(2))) \
-    $(eval $(call gtest-unit-test,gtest-test-part_test,, \
+    $(eval $(call gtest-unit-test,googletest-param-test-test, \
+        test/googletest-param-test2-test.cc,,$(1),$(2))) \
+    $(eval $(call gtest-unit-test,googletest-port-test,, \
         libgtest_main,$(1),$(2))) \
-    $(eval $(call gtest-unit-test,gtest-tuple_test,,libgtest_main,$(1),$(2))) \
+    $(eval $(call gtest-unit-test,googletest-printers-test,, \
+        libgtest_main,$(1),$(2))) \
+    $(eval $(call gtest-unit-test,googletest-test-part-test,, \
+        libgtest_main,$(1),$(2))) \
+    $(eval $(call gtest-unit-test,googletest-tuple-test,,libgtest_main,$(1),$(2))) \
     $(eval $(call gtest-unit-test, \
         gtest-typed-test_test,test/gtest-typed-test2_test.cc, \
             libgtest_main,$(1),$(2))) \
