@@ -26,8 +26,7 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Author: wan@google.com (Zhanyong Wan)
+
 
 // Tests that SCOPED_TRACE() and various Google Test assertions can be
 // used in a large number of threads concurrently.
@@ -164,7 +163,7 @@ void FailingThread(bool is_fatal) {
 }
 
 void GenerateFatalFailureInAnotherThread(bool is_fatal) {
-  ThreadWithParam<bool> thread(&FailingThread, is_fatal, NULL);
+  ThreadWithParam<bool> thread(&FailingThread, is_fatal, nullptr);
   thread.Join();
 }
 

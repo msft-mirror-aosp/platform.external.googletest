@@ -26,8 +26,7 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Author: wan@google.com (Zhanyong Wan)
+
 
 // Google Mock - a framework for writing C++ mock classes.
 //
@@ -35,6 +34,7 @@
 
 #include "gmock/gmock-spec-builders.h"
 
+#include <memory>
 #include <ostream>  // NOLINT
 #include <sstream>
 #include <string>
@@ -100,7 +100,6 @@ using testing::internal::kFail;
 using testing::internal::kInfoVerbosity;
 using testing::internal::kWarn;
 using testing::internal::kWarningVerbosity;
-using testing::internal::linked_ptr;
 
 #if GTEST_HAS_STREAM_REDIRECTION
 using testing::HasSubstr;
@@ -173,7 +172,7 @@ class ReferenceHoldingMock {
  public:
   ReferenceHoldingMock() {}
 
-  MOCK_METHOD1(AcceptReference, void(linked_ptr<MockA>*));
+  MOCK_METHOD1(AcceptReference, void(std::shared_ptr<MockA>*));
 
  private:
   GTEST_DISALLOW_COPY_AND_ASSIGN_(ReferenceHoldingMock);
@@ -1176,7 +1175,7 @@ TEST(UnexpectedCallTest, UnsatisifiedPrerequisites) {
 TEST(UndefinedReturnValueTest,
      ReturnValueIsMandatoryWhenNotDefaultConstructible) {
   MockA a;
-  // TODO(wan@google.com): We should really verify the output message,
+  // FIXME: We should really verify the output message,
   // but we cannot yet due to that EXPECT_DEATH only captures stderr
   // while Google Mock logs to stdout.
 #if GTEST_HAS_EXCEPTIONS
@@ -2042,7 +2041,7 @@ TEST(FunctionCallMessageTest,
   GMOCK_FLAG(verbose) = kWarningVerbosity;
   NaggyMock<MockC> c;
   CaptureStdout();
-  c.VoidMethod(false, 5, "Hi", NULL, Printable(), Unprintable());
+  c.VoidMethod(false, 5, "Hi", nullptr, Printable(), Unprintable());
   const std::string output = GetCapturedStdout();
   EXPECT_PRED_FORMAT2(IsSubstring, "GMOCK WARNING", output);
   EXPECT_PRED_FORMAT2(IsNotSubstring, "Stack trace:", output);
@@ -2056,7 +2055,7 @@ TEST(FunctionCallMessageTest,
   GMOCK_FLAG(verbose) = kInfoVerbosity;
   NaggyMock<MockC> c;
   CaptureStdout();
-  c.VoidMethod(false, 5, "Hi", NULL, Printable(), Unprintable());
+  c.VoidMethod(false, 5, "Hi", nullptr, Printable(), Unprintable());
   const std::string output = GetCapturedStdout();
   EXPECT_PRED_FORMAT2(IsSubstring, "GMOCK WARNING", output);
   EXPECT_PRED_FORMAT2(IsSubstring, "Stack trace:", output);
@@ -2099,7 +2098,7 @@ TEST(FunctionCallMessageTest,
   // A void mock function.
   NaggyMock<MockC> c;
   CaptureStdout();
-  c.VoidMethod(false, 5, "Hi", NULL, Printable(), Unprintable());
+  c.VoidMethod(false, 5, "Hi", nullptr, Printable(), Unprintable());
   const std::string output2 = GetCapturedStdout();
   EXPECT_THAT(output2.c_str(),
               ContainsRegex(
@@ -2620,7 +2619,7 @@ TEST(VerifyAndClearTest, DoesNotAffectOtherMockObjects) {
 
 TEST(VerifyAndClearTest,
      DestroyingChainedMocksDoesNotDeadlockThroughExpectations) {
-  linked_ptr<MockA> a(new MockA);
+  std::shared_ptr<MockA> a(new MockA);
   ReferenceHoldingMock test_mock;
 
   // EXPECT_CALL stores a reference to a inside test_mock.
@@ -2640,7 +2639,7 @@ TEST(VerifyAndClearTest,
 
 TEST(VerifyAndClearTest,
      DestroyingChainedMocksDoesNotDeadlockThroughDefaultAction) {
-  linked_ptr<MockA> a(new MockA);
+  std::shared_ptr<MockA> a(new MockA);
   ReferenceHoldingMock test_mock;
 
   // ON_CALL stores a reference to a inside test_mock.

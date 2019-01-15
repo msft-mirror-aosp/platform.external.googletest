@@ -27,10 +27,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Utility functions and classes used by the Google C++ testing framework.
-//
-// Author: wan@google.com (Zhanyong Wan)
-//
+// Utility functions and classes used by the Google C++ testing framework.//
 // This file contains purely Google Test's internal implementation.  Please
 // DO NOT #INCLUDE IT IN A USER PROGRAM.
 
@@ -61,6 +58,9 @@
 
 #include "gtest/gtest.h"
 #include "gtest/gtest-spi.h"
+
+GTEST_DISABLE_MSC_WARNINGS_PUSH_(4251 \
+/* class A needs to have dll-interface to be used by clients of class B */)
 
 namespace testing {
 
@@ -544,6 +544,9 @@ class GTEST_API_ UnitTestImpl {
   // Gets the number of successful tests.
   int successful_test_count() const;
 
+  // Gets the number of skipped tests.
+  int skipped_test_count() const;
+
   // Gets the number of failed tests.
   int failed_test_count() const;
 
@@ -582,14 +585,14 @@ class GTEST_API_ UnitTestImpl {
   // total_test_case_count() - 1. If i is not in that range, returns NULL.
   const TestCase* GetTestCase(int i) const {
     const int index = GetElementOr(test_case_indices_, i, -1);
-    return index < 0 ? NULL : test_cases_[i];
+    return index < 0 ? nullptr : test_cases_[i];
   }
 
   // Gets the i-th test case among all the test cases. i can range from 0 to
   // total_test_case_count() - 1. If i is not in that range, returns NULL.
   TestCase* GetMutableTestCase(int i) {
     const int index = GetElementOr(test_case_indices_, i, -1);
-    return index < 0 ? NULL : test_cases_[index];
+    return index < 0 ? nullptr : test_cases_[index];
   }
 
   // Provides access to the event listener list.
@@ -994,7 +997,7 @@ bool ParseNaturalNumber(const ::std::string& str, Integer* number) {
 
   const bool parse_success = *end == '\0' && errno == 0;
 
-  // TODO(vladl@google.com): Convert this to compile time assertion when it is
+  // FIXME: Convert this to compile time assertion when it is
   // available.
   GTEST_CHECK_(sizeof(Integer) <= sizeof(parsed));
 
@@ -1155,8 +1158,7 @@ class StreamingListener : public EmptyTestEventListener {
 
   void OnTestPartResult(const TestPartResult& test_part_result) {
     const char* file_name = test_part_result.file_name();
-    if (file_name == NULL)
-      file_name = "";
+    if (file_name == nullptr) file_name = "";
     SendLn("event=TestPartResult&file=" + UrlEncode(file_name) +
            "&line=" + StreamableToString(test_part_result.line_number()) +
            "&message=" + UrlEncode(test_part_result.message()));
@@ -1181,5 +1183,7 @@ class StreamingListener : public EmptyTestEventListener {
 
 }  // namespace internal
 }  // namespace testing
+
+GTEST_DISABLE_MSC_WARNINGS_POP_()  //  4251
 
 #endif  // GTEST_SRC_GTEST_INTERNAL_INL_H_

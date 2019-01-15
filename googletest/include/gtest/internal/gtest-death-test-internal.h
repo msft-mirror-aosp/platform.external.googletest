@@ -27,11 +27,11 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-//
 // The Google C++ Testing and Mocking Framework (Google Test)
 //
 // This header file defines internal utilities needed for implementing
 // death tests.  They are subject to change without notice.
+// GOOGLETEST_CM0001 DO NOT DELETE
 
 #ifndef GTEST_INCLUDE_GTEST_INTERNAL_GTEST_DEATH_TEST_INTERNAL_H_
 #define GTEST_INCLUDE_GTEST_INTERNAL_GTEST_DEATH_TEST_INTERNAL_H_
@@ -51,6 +51,9 @@ const char kDeathTestUseFork[] = "death_test_use_fork";
 const char kInternalRunDeathTestFlag[] = "internal_run_death_test";
 
 #if GTEST_HAS_DEATH_TEST
+
+GTEST_DISABLE_MSC_WARNINGS_PUSH_(4251 \
+/* class A needs to have dll-interface to be used by clients of class B */)
 
 // DeathTest is a class that hides much of the complexity of the
 // GTEST_DEATH_TEST_ macro.  It is abstract; its static Create method
@@ -135,6 +138,8 @@ class GTEST_API_ DeathTest {
   GTEST_DISALLOW_COPY_AND_ASSIGN_(DeathTest);
 };
 
+GTEST_DISABLE_MSC_WARNINGS_POP_()  //  4251
+
 // Factory interface for death tests.  May be mocked out for testing.
 class DeathTestFactory {
  public:
@@ -181,38 +186,38 @@ GTEST_API_ bool ExitedUnsuccessfully(int exit_status);
 
 // This macro is for implementing ASSERT_DEATH*, EXPECT_DEATH*,
 // ASSERT_EXIT*, and EXPECT_EXIT*.
-# define GTEST_DEATH_TEST_(statement, predicate, regex, fail) \
-  GTEST_AMBIGUOUS_ELSE_BLOCKER_ \
-  if (::testing::internal::AlwaysTrue()) { \
-    const ::testing::internal::RE& gtest_regex = (regex); \
-    ::testing::internal::DeathTest* gtest_dt; \
-    if (!::testing::internal::DeathTest::Create(#statement, &gtest_regex, \
-        __FILE__, __LINE__, &gtest_dt)) { \
-      goto GTEST_CONCAT_TOKEN_(gtest_label_, __LINE__); \
-    } \
-    if (gtest_dt != NULL) { \
-      ::testing::internal::scoped_ptr< ::testing::internal::DeathTest> \
-          gtest_dt_ptr(gtest_dt); \
-      switch (gtest_dt->AssumeRole()) { \
-        case ::testing::internal::DeathTest::OVERSEE_TEST: \
-          if (!gtest_dt->Passed(predicate(gtest_dt->Wait()))) { \
-            goto GTEST_CONCAT_TOKEN_(gtest_label_, __LINE__); \
-          } \
-          break; \
-        case ::testing::internal::DeathTest::EXECUTE_TEST: { \
-          ::testing::internal::DeathTest::ReturnSentinel \
-              gtest_sentinel(gtest_dt); \
-          GTEST_EXECUTE_DEATH_TEST_STATEMENT_(statement, gtest_dt); \
+#define GTEST_DEATH_TEST_(statement, predicate, regex, fail)                 \
+  GTEST_AMBIGUOUS_ELSE_BLOCKER_                                              \
+  if (::testing::internal::AlwaysTrue()) {                                   \
+    const ::testing::internal::RE& gtest_regex = (regex);                    \
+    ::testing::internal::DeathTest* gtest_dt;                                \
+    if (!::testing::internal::DeathTest::Create(                             \
+            #statement, &gtest_regex, __FILE__, __LINE__, &gtest_dt)) {      \
+      goto GTEST_CONCAT_TOKEN_(gtest_label_, __LINE__);                      \
+    }                                                                        \
+    if (gtest_dt != nullptr) {                                               \
+      ::testing::internal::scoped_ptr< ::testing::internal::DeathTest>       \
+          gtest_dt_ptr(gtest_dt);                                            \
+      switch (gtest_dt->AssumeRole()) {                                      \
+        case ::testing::internal::DeathTest::OVERSEE_TEST:                   \
+          if (!gtest_dt->Passed(predicate(gtest_dt->Wait()))) {              \
+            goto GTEST_CONCAT_TOKEN_(gtest_label_, __LINE__);                \
+          }                                                                  \
+          break;                                                             \
+        case ::testing::internal::DeathTest::EXECUTE_TEST: {                 \
+          ::testing::internal::DeathTest::ReturnSentinel gtest_sentinel(     \
+              gtest_dt);                                                     \
+          GTEST_EXECUTE_DEATH_TEST_STATEMENT_(statement, gtest_dt);          \
           gtest_dt->Abort(::testing::internal::DeathTest::TEST_DID_NOT_DIE); \
-          break; \
-        } \
-        default: \
-          break; \
-      } \
-    } \
-  } else \
-    GTEST_CONCAT_TOKEN_(gtest_label_, __LINE__): \
-      fail(::testing::internal::DeathTest::LastMessage())
+          break;                                                             \
+        }                                                                    \
+        default:                                                             \
+          break;                                                             \
+      }                                                                      \
+    }                                                                        \
+  } else                                                                     \
+    GTEST_CONCAT_TOKEN_(gtest_label_, __LINE__)                              \
+        : fail(::testing::internal::DeathTest::LastMessage())
 // The symbol "fail" here expands to something into which a message
 // can be streamed.
 

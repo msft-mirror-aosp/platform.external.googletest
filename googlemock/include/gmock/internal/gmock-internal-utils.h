@@ -26,14 +26,15 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Author: wan@google.com (Zhanyong Wan)
+
 
 // Google Mock - a framework for writing C++ mock classes.
 //
 // This file defines some utilities useful for implementing Google
 // Mock.  They are subject to change without notice, so please DO NOT
 // USE THEM IN USER CODE.
+
+// GOOGLETEST_CM0002 DO NOT DELETE
 
 #ifndef GMOCK_INCLUDE_GMOCK_INTERNAL_GMOCK_INTERNAL_UTILS_H_
 #define GMOCK_INCLUDE_GMOCK_INTERNAL_GMOCK_INTERNAL_UTILS_H_
@@ -90,15 +91,6 @@ inline const typename Pointer::element_type* GetRawPointer(const Pointer& p) {
 // This overloaded version is for the raw pointer case.
 template <typename Element>
 inline Element* GetRawPointer(Element* p) { return p; }
-
-// This comparator allows linked_ptr to be stored in sets.
-template <typename T>
-struct LinkedPtrLessThan {
-  bool operator()(const ::testing::internal::linked_ptr<T>& lhs,
-                  const ::testing::internal::linked_ptr<T>& rhs) const {
-    return lhs.get() < rhs.get();
-  }
-};
 
 // Symbian compilation can be done with wchar_t being either a native
 // type or a typedef.  Using Google Mock with OpenC without wchar_t
@@ -359,7 +351,7 @@ class WithoutMatchers {
 // Internal use only: access the singleton instance of WithoutMatchers.
 GTEST_API_ WithoutMatchers GetWithoutMatchers();
 
-// TODO(wan@google.com): group all type utilities together.
+// FIXME: group all type utilities together.
 
 // Type traits.
 
@@ -492,7 +484,7 @@ class StlContainerView<Element[N]> {
 // This specialization is used when RawContainer is a native array
 // represented as a (pointer, size) tuple.
 template <typename ElementPointer, typename Size>
-class StlContainerView< ::testing::tuple<ElementPointer, Size> > {
+class StlContainerView< ::std::tuple<ElementPointer, Size> > {
  public:
   typedef GTEST_REMOVE_CONST_(
       typename internal::PointeeOf<ElementPointer>::type) RawElement;
@@ -500,11 +492,12 @@ class StlContainerView< ::testing::tuple<ElementPointer, Size> > {
   typedef const type const_reference;
 
   static const_reference ConstReference(
-      const ::testing::tuple<ElementPointer, Size>& array) {
-    return type(get<0>(array), get<1>(array), RelationToSourceReference());
+      const ::std::tuple<ElementPointer, Size>& array) {
+    return type(std::get<0>(array), std::get<1>(array),
+                RelationToSourceReference());
   }
-  static type Copy(const ::testing::tuple<ElementPointer, Size>& array) {
-    return type(get<0>(array), get<1>(array), RelationToSourceCopy());
+  static type Copy(const ::std::tuple<ElementPointer, Size>& array) {
+    return type(std::get<0>(array), std::get<1>(array), RelationToSourceCopy());
   }
 };
 

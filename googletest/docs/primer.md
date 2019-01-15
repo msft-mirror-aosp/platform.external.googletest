@@ -5,8 +5,8 @@
 
 *googletest* helps you write better C++ tests.
 
-googletest is a testing framework developed by the [Testing
-Technology](http://engdoc/eng/testing/TT/) team with Google's specific
+googletest is a testing framework developed by the Testing
+Technology team with Google's specific
 requirements and constraints in mind. No matter whether you work on Linux,
 Windows, or a Mac, if you write C++ code, googletest can help you. And it
 supports *any* kind of tests, not just unit tests.
@@ -75,7 +75,7 @@ the terms:
 Meaning                                                                              | googletest Term                                                                                            | [ISTQB](http://www.istqb.org/) Term
 :----------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------- | :----------------------------------
 Exercise a particular program path with specific input values and verify the results | [TEST()](#simple-tests)                                                                                    | [Test Case](http://glossary.istqb.org/search/test%20case)
-A set of several tests related to one component                                      | [TestCase](https://g3doc.corp.google.com/third_party/googletest/googletest/g3doc/primer.md#basic-concepts) | [TestSuite](http://glossary.istqb.org/search/test%20suite)
+A set of several tests related to one component                                      | [TestCase](#basic-concepts) | [TestSuite](http://glossary.istqb.org/search/test%20suite)
 
 ## Basic Concepts
 
@@ -198,7 +198,7 @@ objects, you should use `ASSERT_EQ`.
 
 When doing pointer comparisons use `*_EQ(ptr, nullptr)` and `*_NE(ptr, nullptr)`
 instead of `*_EQ(ptr, NULL)` and `*_NE(ptr, NULL)`. This is because `nullptr` is
-typed while `NULL` is not. See [FAQ](faq.md#why-does-google-test-support-expect_eqnull-ptr-and-assert_eqnull-ptr-but-not-expect_nenull-ptr-and-assert_nenull-ptr)
+typed while `NULL` is not. See [FAQ](faq.md#why-does-googletest-support-expect_eqnull-ptr-and-assert_eqnull-ptr-but-not-expect_nenull-ptr-and-assert_nenull-ptr)
 for more details.
 
 If you're working with floating point numbers, you may want to use the floating
@@ -317,7 +317,7 @@ To create a fixture:
 1.  If necessary, write a destructor or `TearDown()` function to release any
     resources you allocated in `SetUp()` . To learn when you should use the
     constructor/destructor and when you should use `SetUp()/TearDown()`, read
-    this [FAQ](faq.md#should-i-use-the-constructordestructor-of-the-test-fixture-or-the-set-uptear-down-function) entry.
+    this [FAQ](faq.md#should-i-use-the-constructordestructor-of-the-test-fixture-or-setupteardown) entry.
 1.  If needed, define subroutines for your tests to share.
 
 When using a fixture, use `TEST_F()` instead of `TEST()` as it allows you to
@@ -471,17 +471,14 @@ If a fatal failure happens the subsequent steps will be skipped.
 >
 > Also, you should call `RUN_ALL_TESTS()` only **once**. Calling it more than
 > once conflicts with some advanced googletest features (e.g. thread-safe [death
-> tests](advanced#death-tests)) and thus is not supported.
+> tests](advanced.md#death-tests)) and thus is not supported.
 
 **Availability**: Linux, Windows, Mac.
 
 ## Writing the main() Function
 
-In `google3`, the simplest approach is to use the default main() function
-provided by linking in `"//testing/base/public:gtest_main"`. If that doesn't
-cover what you need, you should write your own main() function, which should
-return the value of `RUN_ALL_TESTS()`. Link to `"//testing/base/public:gunit"`.
-You can start from this boilerplate:
+Write your own main() function, which should
+return the value of `RUN_ALL_TESTS()`
 
 ```c++
 #include "this/package/foo.h"
