@@ -63,6 +63,8 @@ GTEST_DISABLE_MSC_WARNINGS_PUSH_(
                  class B */
     /* Symbol involving type with internal linkage not defined */)
 
+#pragma GCC system_header
+
 namespace testing {
 
 // To implement a matcher Foo for type T, define:
