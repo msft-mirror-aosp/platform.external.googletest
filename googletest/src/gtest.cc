@@ -2675,10 +2675,12 @@ void TestInfo::Run() {
     test->Run();
   }
 
+  if (test != nullptr) {
     // Deletes the test object.
     impl->os_stack_trace_getter()->UponLeavingGTest();
     internal::HandleExceptionsInMethodIfSupported(
         test, &Test::DeleteSelf_, "the test fixture's destructor");
+  }
 
   result_.set_elapsed_time(internal::GetTimeInMillis() - start);
 
@@ -2968,7 +2970,7 @@ static const char* GetAnsiColorCode(GTestColor color) {
     case COLOR_YELLOW:  return "3";
     default:
       return nullptr;
-  };
+  }
 }
 
 #endif  // GTEST_OS_WINDOWS && !GTEST_OS_WINDOWS_MOBILE
