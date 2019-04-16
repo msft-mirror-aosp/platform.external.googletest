@@ -1,7 +1,6 @@
-#!/usr/bin/env bash
-# Copyright 2017 Google Inc.
-# All Rights Reserved.
+#!/usr/bin/env python
 #
+# Copyright 2019 Google LLC.  All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -28,20 +27,28 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""Tests Google Test's gtest skip in environment setup  behavior.
 
-#
-# This file should be sourced, and not executed as a standalone script.
-#
+This script invokes gtest_skip_in_environment_setup_test_ and verifies its
+output.
+"""
 
-# TODO() - we can check if this is being sourced using $BASH_VERSION and $BASH_SOURCE[0] != ${0}.
-#
+import gtest_test_utils
 
-if [ "${TRAVIS_OS_NAME}" = "osx" ]; then
-    if [ "$CXX" = "clang++" ]; then
-        # $PATH needs to be adjusted because the llvm tap doesn't install the
-        # package to /usr/local/bin, etc, like the gcc tap does.
-        # See: https://github.com/Homebrew/legacy-homebrew/issues/29733
-        clang_version=3.9
-        export PATH="/usr/local/opt/llvm@${clang_version}/bin:$PATH";
-    fi
-fi
+# Path to the gtest_skip_in_environment_setup_test binary
+EXE_PATH = gtest_test_utils.GetTestExecutablePath(
+    'gtest_skip_in_environment_setup_test')
+
+OUTPUT = gtest_test_utils.Subprocess([EXE_PATH]).output
+
+
+# Test.
+class SkipEntireEnvironmentTest(gtest_test_utils.TestCase):
+
+  def testSkipEntireEnvironmentTest(self):
+    self.assertIn('Skipping the entire environment', OUTPUT)
+    self.assertNotIn('FAILED', OUTPUT)
+
+
+if __name__ == '__main__':
+  gtest_test_utils.Main()

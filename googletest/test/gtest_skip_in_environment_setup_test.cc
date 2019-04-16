@@ -1,4 +1,4 @@
-// Copyright 2015, Google Inc.
+// Copyright 2019, Google LLC.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
 // copyright notice, this list of conditions and the following disclaimer
 // in the documentation and/or other materials provided with the
 // distribution.
-//     * Neither the name of Google Inc. nor the names of its
+//     * Neither the name of Google LLC. nor the names of its
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
@@ -27,14 +27,23 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Injection point for custom user configurations. See README for details
-//
-// ** Custom implementation starts here **
+// This test verifies that skipping in the environment results in the
+// testcases being skipped.
 
-#ifndef GTEST_INCLUDE_GTEST_INTERNAL_CUSTOM_GTEST_PORT_H_
-#define GTEST_INCLUDE_GTEST_INTERNAL_CUSTOM_GTEST_PORT_H_
+#include <iostream>
+#include "gtest/gtest.h"
 
-// Suppress warnings for deprecated *_TEST_CASE_* macros.
-#define GTEST_INTERNAL_DEPRECATED(message)
+class SetupEnvironment : public testing::Environment {
+ public:
+  void SetUp() override { GTEST_SKIP() << "Skipping the entire environment"; }
+};
 
-#endif  // GTEST_INCLUDE_GTEST_INTERNAL_CUSTOM_GTEST_PORT_H_
+TEST(Test, AlwaysFails) { EXPECT_EQ(true, false); }
+
+int main(int argc, char **argv) {
+  testing::InitGoogleTest(&argc, argv);
+
+  testing::AddGlobalTestEnvironment(new SetupEnvironment());
+
+  return RUN_ALL_TESTS();
+}
