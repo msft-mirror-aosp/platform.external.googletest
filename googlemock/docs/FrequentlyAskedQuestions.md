@@ -7,7 +7,7 @@ tried [Google Mock Doctor](#how-am-i-supposed-to-make-sense-of-these-horrible-te
 
 ## When I call a method on my mock object, the method for the real object is invoked instead.  What's the problem? ##
 
-In order for a method to be mocked, it must be _virtual_, unless you use the [high-perf dependency injection technique](CookBook.md#mocking-nonvirtual-methods).
+In order for a method to be mocked, it must be _virtual_, unless you use the [high-perf dependency injection technique](cook_book.md#mocking-nonvirtual-methods).
 
 ## I wrote some matchers.  After I upgraded to a new version of Google Mock, they no longer compile.  What's going on? ##
 
@@ -196,8 +196,8 @@ class MyGreatMatcher {
 ```
 
 For more information, you can read these
-[two](CookBook.md#writing-new-monomorphic-matchers)
-[recipes](CookBook.md#writing-new-polymorphic-matchers)
+[two](cook_book.md#writing-new-monomorphic-matchers)
+[recipes](cook_book.md#writing-new-polymorphic-matchers)
 from the cookbook.  As always, you
 are welcome to post questions on `googlemock@googlegroups.com` if you
 need any help.
@@ -251,77 +251,6 @@ They are unsafe to use and don't work with arguments that have
 constructors or destructors.  Therefore we recommend to avoid them in
 C++ as much as possible.
 
-## MSVC gives me warning C4301 or C4373 when I define a mock method with a const parameter.  Why? ##
-
-If you compile this using Microsoft Visual C++ 2005 SP1:
-```cpp
-class Foo {
-  ...
-  virtual void Bar(const int i) = 0;
-};
-
-class MockFoo : public Foo {
-  ...
-  MOCK_METHOD1(Bar, void(const int i));
-};
-```
-You may get the following warning:
-```
-warning C4301: 'MockFoo::Bar': overriding virtual function only differs from 'Foo::Bar' by const/volatile qualifier
-```
-
-This is a MSVC bug.  The same code compiles fine with gcc ,for
-example.  If you use Visual C++ 2008 SP1, you would get the warning:
-```
-warning C4373: 'MockFoo::Bar': virtual function overrides 'Foo::Bar', previous versions of the compiler did not override when parameters only differed by const/volatile qualifiers
-```
-
-In C++, if you _declare_ a function with a `const` parameter, the
-`const` modifier is _ignored_.  Therefore, the `Foo` base class above
-is equivalent to:
-```cpp
-class Foo {
-  ...
-  virtual void Bar(int i) = 0;  // int or const int?  Makes no difference.
-};
-```
-
-In fact, you can _declare_ Bar() with an `int` parameter, and _define_
-it with a `const int` parameter.  The compiler will still match them
-up.
-
-Since making a parameter `const` is meaningless in the method
-_declaration_, we recommend to remove it in both `Foo` and `MockFoo`.
-That should workaround the VC bug.
-
-Note that we are talking about the _top-level_ `const` modifier here.
-If the function parameter is passed by pointer or reference, declaring
-the _pointee_ or _referee_ as `const` is still meaningful.  For
-example, the following two declarations are _not_ equivalent:
-```cpp
-void Bar(int* p);        // Neither p nor *p is const.
-void Bar(const int* p);  // p is not const, but *p is.
-```
-
-## I have a huge mock class, and Microsoft Visual C++ runs out of memory when compiling it.  What can I do? ##
-
-We've noticed that when the `/clr` compiler flag is used, Visual C++
-uses 5~6 times as much memory when compiling a mock class.  We suggest
-to avoid `/clr` when compiling native C++ mocks.
-
-## I can't figure out why Google Mock thinks my expectations are not satisfied.  What should I do? ##
-
-You might want to run your test with
-`--gmock_verbose=info`.  This flag lets Google Mock print a trace
-of every mock function call it receives.  By studying the trace,
-you'll gain insights on why the expectations you set are not met.
-
-## How can I assert that a function is NEVER called? ##
-
-```cpp
-EXPECT_CALL(foo, Bar(_))
-    .Times(0);
-```
 
 ## I have a failed test where Google Mock tells me TWICE that a particular expectation is not satisfied.  Isn't this redundant? ##
 
@@ -474,10 +403,10 @@ verbose level.
 If you find yourself needing to perform some action that's not
 supported by Google Mock directly, remember that you can define your own
 actions using
-[MakeAction()](CookBook.md#writing-new-actions-quickly) or
-[MakePolymorphicAction()](CookBook.md#writing-new-polymorphic-actions),
+[MakeAction()](cook_book.md#writing-new-actions-quickly) or
+[MakePolymorphicAction()](cook_book.md#writing-new-polymorphic-actions),
 or you can write a stub function and invoke it using
-[Invoke()](CookBook.md#using-functionsmethodsfunctors-as-actions).
+[Invoke()](cook_book.md#using-functionsmethodsfunctors-as-actions).
 
 ## MOCK\_METHODn()'s second argument looks funny.  Why don't you use the MOCK\_METHODn(Method, return\_type, arg\_1, ..., arg\_n) syntax? ##
 
@@ -599,7 +528,7 @@ when the mock method is called.  `SetArgPointee()` says what the
 side effect is, but doesn't say what the return value should be.  You
 need `DoAll()` to chain a `SetArgPointee()` with a `Return()`.
 
-See this [recipe](CookBook.md#mocking-side-effects) for more details and an example.
+See this [recipe](cook_book.md#mocking-side-effects) for more details and an example.
 
 
 ## My question is not in your FAQ! ##
