@@ -1,5 +1,5 @@
 ########################################################################
-# Note: CMake support is community-based. The maintaners do not use CMake
+# Note: CMake support is community-based. The maintainers do not use CMake
 # internally.
 #
 # CMake build script for Google Test.
@@ -188,7 +188,7 @@ if (gtest_build_tests)
 "$project_bin = \"${CMAKE_BINARY_DIR}/bin/$<CONFIG>\"
 $env:Path = \"$project_bin;$env:Path\"
 & $args")
-  elseif (MINGW)
+  elseif (MINGW OR CYGWIN)
     file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/RunTest.ps1"
          CONTENT
 "$project_bin = (cygpath --windows ${CMAKE_BINARY_DIR}/bin)
