@@ -99,7 +99,8 @@ struct BuiltInDefaultValueGetter<T, false> {
 template <typename T>
 class BuiltInDefaultValue {
  public:
-  // This function returns true if type T has a built-in default value.
+  // This function returns true if and only if type T has a built-in default
+  // value.
   static bool Exists() {
     return ::std::is_default_constructible<T>::value;
   }
@@ -208,7 +209,7 @@ class DefaultValue {
     producer_ = nullptr;
   }
 
-  // Returns true if the user has set the default value for type T.
+  // Returns true if and only if the user has set the default value for type T.
   static bool IsSet() { return producer_ != nullptr; }
 
   // Returns true if T has a default return value set by the user or there
@@ -269,7 +270,7 @@ class DefaultValue<T&> {
   // Unsets the default value for type T&.
   static void Clear() { address_ = nullptr; }
 
-  // Returns true if the user has set the default value for type T&.
+  // Returns true if and only if the user has set the default value for type T&.
   static bool IsSet() { return address_ != nullptr; }
 
   // Returns true if T has a default return value set by the user or there
@@ -375,7 +376,7 @@ class Action {
   template <typename Func>
   explicit Action(const Action<Func>& action) : fun_(action.fun_) {}
 
-  // Returns true if this is the DoDefault() action.
+  // Returns true if and only if this is the DoDefault() action.
   bool IsDoDefault() const { return fun_ == nullptr; }
 
   // Performs the action.  Note that this method is const even though
@@ -395,7 +396,7 @@ class Action {
   template <typename G>
   friend class Action;
 
-  // fun_ is an empty function if this is the DoDefault() action.
+  // fun_ is an empty function if and only if this is the DoDefault() action.
   ::std::function<F> fun_;
 };
 
@@ -619,7 +620,7 @@ class ReturnVoidAction {
   // Allows Return() to be used in any void-returning function.
   template <typename Result, typename ArgumentTuple>
   static void Perform(const ArgumentTuple&) {
-    CompileAssertTypesEqual<void, Result>();
+    static_assert(std::is_void<Result>::value, "Result should be void.");
   }
 };
 
@@ -713,6 +714,36 @@ class ReturnRefOfCopyAction {
   const T value_;
 
   GTEST_DISALLOW_ASSIGN_(ReturnRefOfCopyAction);
+};
+
+// Implements the polymorphic ReturnRoundRobin(v) action, which can be
+// used in any function that returns the element_type of v.
+template <typename T>
+class ReturnRoundRobinAction {
+ public:
+  explicit ReturnRoundRobinAction(std::vector<T> values) {
+    GTEST_CHECK_(!values.empty())
+        << "ReturnRoundRobin requires at least one element.";
+    state_->values = std::move(values);
+  }
+
+  template <typename... Args>
+  T operator()(Args&&...) const {
+     return state_->Next();
+  }
+
+ private:
+  struct State {
+    T Next() {
+      T ret_val = values[i++];
+      if (i == values.size()) i = 0;
+      return ret_val;
+    }
+
+    std::vector<T> values;
+    size_t i = 0;
+  };
+  std::shared_ptr<State> state_ = std::make_shared<State>();
 };
 
 // Implements the polymorphic DoDefault() action.
@@ -842,7 +873,7 @@ class IgnoreResultAction {
     typedef typename internal::Function<F>::Result Result;
 
     // Asserts at compile time that F returns void.
-    CompileAssertTypesEqual<void, Result>();
+    static_assert(std::is_void<Result>::value, "Result type should be void.");
 
     return Action<F>(new Impl<F>(action_));
   }
@@ -1021,6 +1052,10 @@ inline internal::ReturnRefAction<R> ReturnRef(R& x) {  // NOLINT
   return internal::ReturnRefAction<R>(x);
 }
 
+// Prevent using ReturnRef on reference to temporary.
+template <typename R, R* = nullptr>
+internal::ReturnRefAction<R> ReturnRef(R&&) = delete;
+
 // Creates an action that returns the reference to a copy of the
 // argument.  The copy is created when the action is constructed and
 // lives as long as the action.
@@ -1038,6 +1073,23 @@ internal::ByMoveWrapper<R> ByMove(R x) {
   return internal::ByMoveWrapper<R>(std::move(x));
 }
 
+// Creates an action that returns an element of `vals`. Calling this action will
+// repeatedly return the next value from `vals` until it reaches the end and
+// will restart from the beginning.
+template <typename T>
+internal::ReturnRoundRobinAction<T> ReturnRoundRobin(std::vector<T> vals) {
+  return internal::ReturnRoundRobinAction<T>(std::move(vals));
+}
+
+// Creates an action that returns an element of `vals`. Calling this action will
+// repeatedly return the next value from `vals` until it reaches the end and
+// will restart from the beginning.
+template <typename T>
+internal::ReturnRoundRobinAction<T> ReturnRoundRobin(
+    std::initializer_list<T> vals) {
+  return internal::ReturnRoundRobinAction<T>(std::vector<T>(vals));
+}
+
 // Creates an action that does the default action for the give mock function.
 inline internal::DoDefaultAction DoDefault() {
   return internal::DoDefaultAction();
@@ -1046,14 +1098,14 @@ inline internal::DoDefaultAction DoDefault() {
 // Creates an action that sets the variable pointed by the N-th
 // (0-based) function argument to 'value'.
 template <size_t N, typename T>
-internal::SetArgumentPointeeAction<N, T> SetArgPointee(T x) {
-  return {std::move(x)};
+internal::SetArgumentPointeeAction<N, T> SetArgPointee(T value) {
+  return {std::move(value)};
 }
 
 // The following version is DEPRECATED.
 template <size_t N, typename T>
-internal::SetArgumentPointeeAction<N, T> SetArgumentPointee(T x) {
-  return {std::move(x)};
+internal::SetArgumentPointeeAction<N, T> SetArgumentPointee(T value) {
+  return {std::move(value)};
 }
 
 // Creates an action that sets a pointer referent to a given value.
