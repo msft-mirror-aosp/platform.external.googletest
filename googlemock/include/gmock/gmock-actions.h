@@ -162,8 +162,8 @@ GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(unsigned int, 0U);
 GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(signed int, 0);
 GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(unsigned long, 0UL);  // NOLINT
 GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(signed long, 0L);     // NOLINT
-GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(UInt64, 0);
-GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(Int64, 0);
+GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(unsigned long long, 0);  // NOLINT
+GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(signed long long, 0);  // NOLINT
 GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(float, 0);
 GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(double, 0);
 
@@ -916,7 +916,8 @@ struct WithArgsAction {
   // We use the conversion operator to detect the signature of the inner Action.
   template <typename R, typename... Args>
   operator Action<R(Args...)>() const {  // NOLINT
-    Action<R(typename std::tuple_element<I, std::tuple<Args...>>::type...)>
+    using TupleType = std::tuple<Args...>;
+    Action<R(typename std::tuple_element<I, TupleType>::type...)>
         converted(action);
 
     return [converted](Args... args) -> R {
