@@ -9,10 +9,10 @@ third_party {
     type: GIT
     value: "https://github.com/google/googletest.git"
   }
-  version: "e08a4602778b3cbea36dbd53724db0f18840e274"
+  version: "78fdd6c00b8fa5dd67066fbb796affc87ba0e075"
   last_upgrade_date {
     year: 2019
-    month: 11
-    day: 7
+    month: 12
+    day: 9
   }
 }
