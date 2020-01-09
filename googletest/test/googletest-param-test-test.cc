@@ -1068,6 +1068,17 @@ TEST_P(MyEnumTest, ChecksParamMoreThanZero) { EXPECT_GE(10, GetParam()); }
 INSTANTIATE_TEST_SUITE_P(MyEnumTests, MyEnumTest,
                          ::testing::Values(ENUM1, ENUM2, 0));
 
+namespace works_here {
+// Never used not instantiated, this should work.
+class NotUsedTest : public testing::TestWithParam<int> {};
+
+///////
+// Never used not instantiated, this should work.
+template <typename T>
+class NotUsedTypeTest : public testing::Test {};
+TYPED_TEST_SUITE_P(NotUsedTypeTest);
+}  // namespace works_here
+
 int main(int argc, char **argv) {
   // Used in TestGenerationTest test suite.
   AddGlobalTestEnvironment(TestGenerationTest::Environment::Instance());
