@@ -2923,22 +2923,18 @@ TEST_F(FloatTest, Commutative) {
 TEST_F(FloatTest, EXPECT_NEAR) {
   EXPECT_NEAR(-1.0f, -1.1f, 0.2f);
   EXPECT_NEAR(2.0f, 3.0f, 1.0f);
-  EXPECT_NONFATAL_FAILURE(EXPECT_NEAR(1.0f,1.5f, 0.25f),  // NOLINT
+  EXPECT_NONFATAL_FAILURE(EXPECT_NEAR(1.0f, 1.5f, 0.25f),  // NOLINT
                           "The difference between 1.0f and 1.5f is 0.5, "
                           "which exceeds 0.25f");
-  // To work around a bug in gcc 2.95.0, there is intentionally no
-  // space after the first comma in the previous line.
 }
 
 // Tests ASSERT_NEAR.
 TEST_F(FloatTest, ASSERT_NEAR) {
   ASSERT_NEAR(-1.0f, -1.1f, 0.2f);
   ASSERT_NEAR(2.0f, 3.0f, 1.0f);
-  EXPECT_FATAL_FAILURE(ASSERT_NEAR(1.0f,1.5f, 0.25f),  // NOLINT
+  EXPECT_FATAL_FAILURE(ASSERT_NEAR(1.0f, 1.5f, 0.25f),  // NOLINT
                        "The difference between 1.0f and 1.5f is 0.5, "
                        "which exceeds 0.25f");
-  // To work around a bug in gcc 2.95.0, there is intentionally no
-  // space after the first comma in the previous line.
 }
 
 // Tests the cases where FloatLE() should succeed.
@@ -3079,8 +3075,6 @@ TEST_F(DoubleTest, EXPECT_NEAR) {
   EXPECT_NONFATAL_FAILURE(EXPECT_NEAR(1.0, 1.5, 0.25),  // NOLINT
                           "The difference between 1.0 and 1.5 is 0.5, "
                           "which exceeds 0.25");
-  // To work around a bug in gcc 2.95.0, there is intentionally no
-  // space after the first comma in the previous statement.
 }
 
 // Tests ASSERT_NEAR.
@@ -3090,8 +3084,6 @@ TEST_F(DoubleTest, ASSERT_NEAR) {
   EXPECT_FATAL_FAILURE(ASSERT_NEAR(1.0, 1.5, 0.25),  // NOLINT
                        "The difference between 1.0 and 1.5 is 0.5, "
                        "which exceeds 0.25");
-  // To work around a bug in gcc 2.95.0, there is intentionally no
-  // space after the first comma in the previous statement.
 }
 
 // Tests the cases where DoubleLE() should succeed.
@@ -3736,10 +3728,6 @@ TEST(AssertionTest, ASSERT_EQ) {
 TEST(AssertionTest, ASSERT_EQ_NULL) {
   // A success.
   const char* p = nullptr;
-  // Some older GCC versions may issue a spurious warning in this or the next
-  // assertion statement. This warning should not be suppressed with
-  // static_cast since the test verifies the ability to use bare NULL as the
-  // expected parameter to the macro.
   ASSERT_EQ(nullptr, p);
 
   // A failure.
@@ -4321,10 +4309,8 @@ TEST(AssertionWithMessageTest, ASSERT_STR) {
 TEST(AssertionWithMessageTest, ASSERT_FLOATING) {
   ASSERT_FLOAT_EQ(1, 1) << "This should succeed.";
   ASSERT_DOUBLE_EQ(1, 1) << "This should succeed.";
-  EXPECT_FATAL_FAILURE(ASSERT_NEAR(1,1.2, 0.1) << "Expect failure.",  // NOLINT
+  EXPECT_FATAL_FAILURE(ASSERT_NEAR(1, 1.2, 0.1) << "Expect failure.",  // NOLINT
                        "Expect failure.");
-  // To work around a bug in gcc 2.95.0, there is intentionally no
-  // space after the first comma in the previous statement.
 }
 
 // Tests using ASSERT_FALSE with a streamed message.
@@ -4465,10 +4451,6 @@ TEST(ExpectTest, EXPECT_EQ_Double) {
 TEST(ExpectTest, EXPECT_EQ_NULL) {
   // A success.
   const char* p = nullptr;
-  // Some older GCC versions may issue a spurious warning in this or the next
-  // assertion statement. This warning should not be suppressed with
-  // static_cast since the test verifies the ability to use bare NULL as the
-  // expected parameter to the macro.
   EXPECT_EQ(nullptr, p);
 
   // A failure.
@@ -5355,7 +5337,7 @@ TEST_P(CodeLocationForTESTP, Verify) {
   VERIFY_CODE_LOCATION;
 }
 
-INSTANTIATE_TEST_SUITE_P(All, CodeLocationForTESTP, Values(0));
+INSTANTIATE_TEST_SUITE_P(, CodeLocationForTESTP, Values(0));
 
 template <typename T>
 class CodeLocationForTYPEDTEST : public Test {
