@@ -177,6 +177,7 @@ class FuchsiaDeathTest;
 class UnitTestImpl* GetUnitTestImpl();
 void ReportFailureInUnknownLocation(TestPartResult::Type result_type,
                                     const std::string& message);
+std::set<std::string>* GetIgnoredParameterizedTestSuites();
 
 }  // namespace internal
 
@@ -278,7 +279,11 @@ class GTEST_API_ AssertionResult {
   // Used in EXPECT_TRUE/FALSE(assertion_result).
   AssertionResult(const AssertionResult& other);
 
-#if defined(_MSC_VER) && _MSC_VER < 1910
+// C4800 is a level 3 warning in Visual Studio 2015 and earlier.
+// This warning is not emitted in Visual Studio 2017.
+// This warning is off by default starting in Visual Studio 2019 but can be
+// enabled with command-line options.
+#if defined(_MSC_VER) && (_MSC_VER < 1910 || _MSC_VER >= 1920)
   GTEST_DISABLE_MSC_WARNINGS_PUSH_(4800 /* forcing value to bool */)
 #endif
 
@@ -298,7 +303,7 @@ class GTEST_API_ AssertionResult {
       = nullptr)
       : success_(success) {}
 
-#if defined(_MSC_VER) && _MSC_VER < 1910
+#if defined(_MSC_VER) && (_MSC_VER < 1910 || _MSC_VER >= 1920)
   GTEST_DISABLE_MSC_WARNINGS_POP_()
 #endif
 
@@ -308,7 +313,7 @@ class GTEST_API_ AssertionResult {
     return *this;
   }
 
-  // Returns true if the assertion succeeded.
+  // Returns true if and only if the assertion succeeded.
   operator bool() const { return success_; }  // NOLINT
 
   // Returns the assertion's negation. Used with EXPECT/ASSERT_FALSE.
@@ -412,8 +417,6 @@ class GTEST_API_ Test {
   // test in test case Foo.  Hence a sub-class can define its own
   // SetUpTestSuite() method to shadow the one defined in the super
   // class.
-  // Failures that happen during SetUpTestSuite are logged but otherwise
-  // ignored.
   static void SetUpTestSuite() {}
 
   // Tears down the stuff shared by all tests in this test suite.
@@ -422,8 +425,6 @@ class GTEST_API_ Test {
   // test in test case Foo.  Hence a sub-class can define its own
   // TearDownTestSuite() method to shadow the one defined in the super
   // class.
-  // Failures that happen during TearDownTestSuite are logged but otherwise
-  // ignored.
   static void TearDownTestSuite() {}
 
   // Legacy API is deprecated but still available
@@ -432,16 +433,16 @@ class GTEST_API_ Test {
   static void SetUpTestCase() {}
 #endif  // GTEST_REMOVE_LEGACY_TEST_CASEAPI_
 
-  // Returns true if the current test has a fatal failure.
+  // Returns true if and only if the current test has a fatal failure.
   static bool HasFatalFailure();
 
-  // Returns true if the current test has a non-fatal failure.
+  // Returns true if and only if the current test has a non-fatal failure.
   static bool HasNonfatalFailure();
 
-  // Returns true if the current test was skipped.
+  // Returns true if and only if the current test was skipped.
   static bool IsSkipped();
 
-  // Returns true if the current test has a (either fatal or
+  // Returns true if and only if the current test has a (either fatal or
   // non-fatal) failure.
   static bool HasFailure() { return HasFatalFailure() || HasNonfatalFailure(); }
 
@@ -472,8 +473,8 @@ class GTEST_API_ Test {
   virtual void TearDown();
 
  private:
-  // Returns true if the current test has the same fixture class as
-  // the first test in the current test suite.
+  // Returns true if and only if the current test has the same fixture class
+  // as the first test in the current test suite.
   static bool HasSameFixtureClass();
 
   // Runs the test after the test fixture has been set up.
@@ -574,19 +575,19 @@ class GTEST_API_ TestResult {
   // Returns the number of the test properties.
   int test_property_count() const;
 
-  // Returns true if the test passed (i.e. no test part failed).
+  // Returns true if and only if the test passed (i.e. no test part failed).
   bool Passed() const { return !Skipped() && !Failed(); }
 
-  // Returns true if the test was skipped.
+  // Returns true if and only if the test was skipped.
   bool Skipped() const;
 
-  // Returns true if the test failed.
+  // Returns true if and only if the test failed.
   bool Failed() const;
 
-  // Returns true if the test fatally failed.
+  // Returns true if and only if the test fatally failed.
   bool HasFatalFailure() const;
 
-  // Returns true if the test has a non-fatal failure.
+  // Returns true if and only if the test has a non-fatal failure.
   bool HasNonfatalFailure() const;
 
   // Returns the elapsed time, in milliseconds.
@@ -750,7 +751,7 @@ class GTEST_API_ TestInfo {
   // contains the character 'A' or starts with "Foo.".
   bool should_run() const { return should_run_; }
 
-  // Returns true if this test will appear in the XML report.
+  // Returns true if and only if this test will appear in the XML report.
   bool is_reportable() const {
     // The XML report includes tests matching the filter, excluding those
     // run in other shards.
@@ -808,12 +809,12 @@ class GTEST_API_ TestInfo {
   // value-parameterized test.
   const std::unique_ptr<const ::std::string> value_param_;
   internal::CodeLocation location_;
-  const internal::TypeId fixture_class_id_;   // ID of the test fixture class
-  bool should_run_;                 // True if this test should run
-  bool is_disabled_;                // True if this test is disabled
-  bool matches_filter_;             // True if this test matches the
-                                    // user-specified filter.
-  bool is_in_another_shard_;        // Will be run in another shard.
+  const internal::TypeId fixture_class_id_;  // ID of the test fixture class
+  bool should_run_;           // True if and only if this test should run
+  bool is_disabled_;          // True if and only if this test is disabled
+  bool matches_filter_;       // True if this test matches the
+                              // user-specified filter.
+  bool is_in_another_shard_;  // Will be run in another shard.
   internal::TestFactoryBase* const factory_;  // The factory that creates
                                               // the test object
 
@@ -885,11 +886,13 @@ class GTEST_API_ TestSuite {
   // Gets the number of all tests in this test suite.
   int total_test_count() const;
 
-  // Returns true if the test suite passed.
+  // Returns true if and only if the test suite passed.
   bool Passed() const { return !Failed(); }
 
-  // Returns true if the test suite failed.
-  bool Failed() const { return failed_test_count() > 0; }
+  // Returns true if and only if the test suite failed.
+  bool Failed() const {
+    return failed_test_count() > 0 || ad_hoc_test_result().Failed();
+  }
 
   // Returns the elapsed time, in milliseconds.
   TimeInMillis elapsed_time() const { return elapsed_time_; }
@@ -956,33 +959,33 @@ class GTEST_API_ TestSuite {
     }
   }
 
-  // Returns true if test passed.
+  // Returns true if and only if test passed.
   static bool TestPassed(const TestInfo* test_info) {
     return test_info->should_run() && test_info->result()->Passed();
   }
 
-  // Returns true if test skipped.
+  // Returns true if and only if test skipped.
   static bool TestSkipped(const TestInfo* test_info) {
     return test_info->should_run() && test_info->result()->Skipped();
   }
 
-  // Returns true if test failed.
+  // Returns true if and only if test failed.
   static bool TestFailed(const TestInfo* test_info) {
     return test_info->should_run() && test_info->result()->Failed();
   }
 
-  // Returns true if the test is disabled and will be reported in the XML
-  // report.
+  // Returns true if and only if the test is disabled and will be reported in
+  // the XML report.
   static bool TestReportableDisabled(const TestInfo* test_info) {
     return test_info->is_reportable() && test_info->is_disabled_;
   }
 
-  // Returns true if test is disabled.
+  // Returns true if and only if test is disabled.
   static bool TestDisabled(const TestInfo* test_info) {
     return test_info->is_disabled_;
   }
 
-  // Returns true if this test will appear in the XML report.
+  // Returns true if and only if this test will appear in the XML report.
   static bool TestReportable(const TestInfo* test_info) {
     return test_info->is_reportable();
   }
@@ -1014,7 +1017,7 @@ class GTEST_API_ TestSuite {
   internal::SetUpTestSuiteFunc set_up_tc_;
   // Pointer to the function that tears down the test suite.
   internal::TearDownTestSuiteFunc tear_down_tc_;
-  // True if any test in this test suite should run.
+  // True if and only if any test in this test suite should run.
   bool should_run_;
   // The start time, in milliseconds since UNIX Epoch.
   TimeInMillis start_timestamp_;
@@ -1349,11 +1352,12 @@ class GTEST_API_ UnitTest {
   // Gets the elapsed time, in milliseconds.
   TimeInMillis elapsed_time() const;
 
-  // Returns true if the unit test passed (i.e. all test suites passed).
+  // Returns true if and only if the unit test passed (i.e. all test suites
+  // passed).
   bool Passed() const;
 
-  // Returns true if the unit test failed (i.e. some test suite failed
-  // or something outside of all tests failed).
+  // Returns true if and only if the unit test failed (i.e. some test suite
+  // failed or something outside of all tests failed).
   bool Failed() const;
 
   // Gets the i-th test suite among all the test suites. i can range from 0 to
@@ -1419,6 +1423,7 @@ class GTEST_API_ UnitTest {
   friend class internal::StreamingListenerTest;
   friend class internal::UnitTestRecordPropertyTestHelper;
   friend Environment* AddGlobalTestEnvironment(Environment* env);
+  friend std::set<std::string>* internal::GetIgnoredParameterizedTestSuites();
   friend internal::UnitTestImpl* internal::GetUnitTestImpl();
   friend void internal::ReportFailureInUnknownLocation(
       TestPartResult::Type result_type,
@@ -1888,7 +1893,7 @@ class TestWithParam : public Test, public WithParamInterface<T> {
 // Skips test in runtime.
 // Skipping test aborts current function.
 // Skipped tests are neither successful nor failed.
-#define GTEST_SKIP() GTEST_SKIP_("Skipped")
+#define GTEST_SKIP() GTEST_SKIP_("")
 
 // ADD_FAILURE unconditionally adds a failure to the current test.
 // SUCCEED generates a success - it doesn't automatically make the
@@ -2265,10 +2270,9 @@ class GTEST_API_ ScopedTrace {
   ::testing::ScopedTrace GTEST_CONCAT_TOKEN_(gtest_trace_, __LINE__)(\
     __FILE__, __LINE__, (message))
 
-
 // Compile-time assertion for type equality.
-// StaticAssertTypeEq<type1, type2>() compiles if type1 and type2 are
-// the same type.  The value it returns is not interesting.
+// StaticAssertTypeEq<type1, type2>() compiles if and only if type1 and type2
+// are the same type.  The value it returns is not interesting.
 //
 // Instead of making StaticAssertTypeEq a class template, we make it a
 // function template that invokes a helper class template.  This
@@ -2297,8 +2301,8 @@ class GTEST_API_ ScopedTrace {
 //
 // to cause a compiler error.
 template <typename T1, typename T2>
-bool StaticAssertTypeEq() {
-  (void)internal::StaticAssertTypeEqHelper<T1, T2>();
+constexpr bool StaticAssertTypeEq() noexcept {
+  static_assert(std::is_same<T1, T2>::value, "T1 and T2 are not the same type");
   return true;
 }
 
@@ -2364,9 +2368,11 @@ bool StaticAssertTypeEq() {
 //   }
 //
 // GOOGLETEST_CM0011 DO NOT DELETE
+#if !GTEST_DONT_DEFINE_TEST
 #define TEST_F(test_fixture, test_name)\
   GTEST_TEST_(test_fixture, test_name, test_fixture, \
               ::testing::internal::GetTypeId<test_fixture>())
+#endif  // !GTEST_DONT_DEFINE_TEST
 
 // Returns a path to temporary directory.
 // Tries to determine an appropriate directory for the platform.

@@ -106,7 +106,7 @@ assertion* to get the function arguments printed for free:
 | Fatal assertion                   | Nonfatal assertion                | Verifies                    |
 | --------------------------------- | --------------------------------- | --------------------------- |
 | `ASSERT_PRED1(pred1, val1)`       | `EXPECT_PRED1(pred1, val1)`       | `pred1(val1)` is true       |
-| `ASSERT_PRED2(pred2, val1, val2)` | `EXPECT_PRED2(pred2, val1, val2)` | `pred1(val1, val2)` is true |
+| `ASSERT_PRED2(pred2, val1, val2)` | `EXPECT_PRED2(pred2, val1, val2)` | `pred2(val1, val2)` is true |
 | `...`                             | `...`                             | `...`                       |
 
 <!-- mdformat on-->
@@ -464,9 +464,10 @@ You can call the function
 
 to assert that types `T1` and `T2` are the same. The function does nothing if
 the assertion is satisfied. If the types are different, the function call will
-fail to compile, and the compiler error message will likely (depending on the
-compiler) show you the actual values of `T1` and `T2`. This is mainly useful
-inside template code.
+fail to compile, the compiler error message will say that
+`T1 and T2 are not the same type` and most likely (depending on the compiler)
+show you the actual values of `T1` and `T2`. This is mainly useful inside
+template code.
 
 **Caveat**: When used inside a member function of a class template or a function
 template, `StaticAssertTypeEq<T1, T2>()` is effective only if the function is
@@ -637,11 +638,12 @@ Fatal assertion                                  | Nonfatal assertion           
 ------------------------------------------------ | ------------------------------------------------ | --------
 `ASSERT_DEATH(statement, matcher);`              | `EXPECT_DEATH(statement, matcher);`              | `statement` crashes with the given error
 `ASSERT_DEATH_IF_SUPPORTED(statement, matcher);` | `EXPECT_DEATH_IF_SUPPORTED(statement, matcher);` | if death tests are supported, verifies that `statement` crashes with the given error; otherwise verifies nothing
+`ASSERT_DEBUG_DEATH(statement, matcher);`        | `EXPECT_DEBUG_DEATH(statement, matcher);`        | `statement` crashes with the given error **in debug mode**. When not in debug (i.e. `NDEBUG` is defined), this just executes `statement`
 `ASSERT_EXIT(statement, predicate, matcher);`    | `EXPECT_EXIT(statement, predicate, matcher);`    | `statement` exits with the given error, and its exit code matches `predicate`
 
 where `statement` is a statement that is expected to cause the process to die,
 `predicate` is a function or function object that evaluates an integer exit
-status, and `matcher` is either a GMock matcher matching a `const std::string&`
+status, and `matcher` is either a gMock matcher matching a `const std::string&`
 or a (Perl) regular expression - either of which is matched against the stderr
 output of `statement`. For legacy reasons, a bare string (i.e. with no matcher)
 is interpreted as `ContainsRegex(str)`, **not** `Eq(str)`. Note that `statement`
@@ -656,7 +658,7 @@ As usual, the `ASSERT` variants abort the current test function, while the
 > has called `exit()` or `_exit()` with a non-zero value, or it may be killed by
 > a signal.
 >
-> This means that if `*statement*` terminates the process with a 0 exit code, it
+> This means that if *`statement`* terminates the process with a 0 exit code, it
 > is *not* considered a crash by `EXPECT_DEATH`. Use `EXPECT_EXIT` instead if
 > this is the case, or if you want to restrict the exit code more precisely.
 
@@ -686,7 +688,7 @@ Note that a death test only cares about three things:
 2.  (in the case of `ASSERT_EXIT` and `EXPECT_EXIT`) does the exit status
     satisfy `predicate`? Or (in the case of `ASSERT_DEATH` and `EXPECT_DEATH`)
     is the exit status non-zero? And
-3.  does the stderr output match `regex`?
+3.  does the stderr output match `matcher`?
 
 In particular, if `statement` generates an `ASSERT_*` or `EXPECT_*` failure, it
 will **not** cause the death test to fail, as googletest assertions don't abort
@@ -917,6 +919,8 @@ the `SCOPED_TRACE` macro or the `ScopedTrace` utility:
 
 ```c++
 SCOPED_TRACE(message);
+```
+```c++
 ScopedTrace trace("file_path", line_number, message);
 ```
 
@@ -952,7 +956,7 @@ path/to/foo_test.cc:11: Failure
 Value of: Bar(n)
 Expected: 1
   Actual: 2
-   Trace:
+Google Test trace:
 path/to/foo_test.cc:17: A
 
 path/to/foo_test.cc:12: Failure
@@ -1131,7 +1135,7 @@ will output XML like this:
 > *   `RecordProperty()` is a static member of the `Test` class. Therefore it
 >     needs to be prefixed with `::testing::Test::` if used outside of the
 >     `TEST` body and the test fixture class.
-> *   `*key*` must be a valid XML attribute name, and cannot conflict with the
+> *   *`key`* must be a valid XML attribute name, and cannot conflict with the
 >     ones already used by googletest (`name`, `status`, `time`, `classname`,
 >     `type_param`, and `value_param`).
 > *   Calling `RecordProperty()` outside of the lifespan of a test is allowed.
@@ -1228,7 +1232,7 @@ environment, which knows how to set-up and tear-down:
 ```c++
 class Environment : public ::testing::Environment {
  public:
-  virtual ~Environment() {}
+  ~Environment() override {}
 
   // Override this to define how to set up the environment.
   void SetUp() override {}
@@ -1373,6 +1377,17 @@ function scope.
 
 NOTE: Don't forget this step! If you do your test will silently pass, but none
 of its suites will ever run!
+
+There is work in progress to make omitting `INSTANTIATE_TEST_SUITE_P` show up
+under the `GoogleTestVerification` test suite and to then make that an error.
+If you have a test suite where that omission is not an error, for example it is
+in a library that may be linked in for other reason or where the list of test
+cases is dynamic and may be empty, then this check can be suppressed by tagging
+the test suite:
+
+```c++
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(FooTest);
+```
 
 To distinguish different instances of the pattern (yes, you can instantiate it
 more than once), the first argument to `INSTANTIATE_TEST_SUITE_P` is a prefix
@@ -1802,7 +1817,7 @@ For technical reasons, there are some caveats:
 ## Registering tests programmatically
 
 The `TEST` macros handle the vast majority of all use cases, but there are few
-were runtime registration logic is required. For those cases, the framework
+where runtime registration logic is required. For those cases, the framework
 provides the `::testing::RegisterTest` that allows callers to register arbitrary
 tests dynamically.
 
@@ -1902,8 +1917,6 @@ To obtain a `TestInfo` object for the currently running test, call
   // Do NOT delete the returned object - it's managed by the UnitTest class.
   const ::testing::TestInfo* const test_info =
     ::testing::UnitTest::GetInstance()->current_test_info();
-
-
 
   printf("We are in test %s of test suite %s.\n",
          test_info->name(),
