@@ -31,6 +31,7 @@
 // Google Mock - a framework for writing C++ mock classes.
 //
 // This file tests the function mocker classes.
+
 #include "gmock/gmock-generated-function-mockers.h"
 
 #if GTEST_OS_WINDOWS
@@ -42,13 +43,11 @@
 
 #include <map>
 #include <string>
-#include <type_traits>
-
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 namespace testing {
-namespace gmock_function_mocker_test {
+namespace gmock_generated_function_mockers_test {
 
 using testing::_;
 using testing::A;
@@ -101,11 +100,8 @@ class FooInterface {
 
   virtual int TypeWithHole(int (*func)()) = 0;
   virtual int TypeWithComma(const std::map<int, std::string>& a_map) = 0;
-  virtual int TypeWithTemplatedCopyCtor(const TemplatedCopyable<int>&) = 0;
-
-  virtual int (*ReturnsFunctionPointer1(int))(bool) = 0;
-  using fn_ptr = int (*)(bool);
-  virtual fn_ptr ReturnsFunctionPointer2(int) = 0;
+  virtual int TypeWithTemplatedCopyCtor(
+      const TemplatedCopyable<int>& a_vector) = 0;
 
 #if GTEST_OS_WINDOWS
   STDMETHOD_(int, CTNullary)() = 0;
@@ -130,54 +126,52 @@ class MockFoo : public FooInterface {
   MockFoo() {}
 
   // Makes sure that a mock function parameter can be named.
-  MOCK_METHOD(void, VoidReturning, (int n));  // NOLINT
+  MOCK_METHOD1(VoidReturning, void(int n));  // NOLINT
 
-  MOCK_METHOD(int, Nullary, ());  // NOLINT
+  MOCK_METHOD0(Nullary, int());  // NOLINT
 
   // Makes sure that a mock function parameter can be unnamed.
-  MOCK_METHOD(bool, Unary, (int));          // NOLINT
-  MOCK_METHOD(long, Binary, (short, int));  // NOLINT
-  MOCK_METHOD(int, Decimal,
-              (bool, char, short, int, long, float,  // NOLINT
-               double, unsigned, char*, const std::string& str),
-              (override));
+  MOCK_METHOD1(Unary, bool(int));  // NOLINT
+  MOCK_METHOD2(Binary, long(short, int));  // NOLINT
+  MOCK_METHOD10(Decimal, int(bool, char, short, int, long, float,  // NOLINT
+                             double, unsigned, char*, const std::string& str));
 
-  MOCK_METHOD(bool, TakesNonConstReference, (int&));  // NOLINT
-  MOCK_METHOD(std::string, TakesConstReference, (const int&));
-  MOCK_METHOD(bool, TakesConst, (const int));  // NOLINT
+  MOCK_METHOD1(TakesNonConstReference, bool(int&));  // NOLINT
+  MOCK_METHOD1(TakesConstReference, std::string(const int&));
+  MOCK_METHOD1(TakesConst, bool(const int));  // NOLINT
 
   // Tests that the function return type can contain unprotected comma.
-  MOCK_METHOD((std::map<int, std::string>), ReturnTypeWithComma, (), ());
-  MOCK_METHOD((std::map<int, std::string>), ReturnTypeWithComma, (int),
-              (const));  // NOLINT
+  MOCK_METHOD0(ReturnTypeWithComma, std::map<int, std::string>());
+  MOCK_CONST_METHOD1(ReturnTypeWithComma,
+                     std::map<int, std::string>(int));  // NOLINT
 
-  MOCK_METHOD(int, OverloadedOnArgumentNumber, ());     // NOLINT
-  MOCK_METHOD(int, OverloadedOnArgumentNumber, (int));  // NOLINT
+  MOCK_METHOD0(OverloadedOnArgumentNumber, int());  // NOLINT
+  MOCK_METHOD1(OverloadedOnArgumentNumber, int(int));  // NOLINT
 
-  MOCK_METHOD(int, OverloadedOnArgumentType, (int));    // NOLINT
-  MOCK_METHOD(char, OverloadedOnArgumentType, (char));  // NOLINT
+  MOCK_METHOD1(OverloadedOnArgumentType, int(int));  // NOLINT
+  MOCK_METHOD1(OverloadedOnArgumentType, char(char));  // NOLINT
 
-  MOCK_METHOD(int, OverloadedOnConstness, (), (override));          // NOLINT
-  MOCK_METHOD(char, OverloadedOnConstness, (), (override, const));  // NOLINT
+  MOCK_METHOD0(OverloadedOnConstness, int());  // NOLINT
+  MOCK_CONST_METHOD0(OverloadedOnConstness, char());  // NOLINT
 
-  MOCK_METHOD(int, TypeWithHole, (int (*)()), ());  // NOLINT
-  MOCK_METHOD(int, TypeWithComma, ((const std::map<int, std::string>&)));
-  MOCK_METHOD(int, TypeWithTemplatedCopyCtor,
-              (const TemplatedCopyable<int>&));  // NOLINT
-
-  MOCK_METHOD(int (*)(bool), ReturnsFunctionPointer1, (int), ());
-  MOCK_METHOD(fn_ptr, ReturnsFunctionPointer2, (int), ());
+  MOCK_METHOD1(TypeWithHole, int(int (*)()));  // NOLINT
+  MOCK_METHOD1(TypeWithComma,
+               int(const std::map<int, std::string>&));  // NOLINT
+  MOCK_METHOD1(TypeWithTemplatedCopyCtor,
+               int(const TemplatedCopyable<int>&));  // NOLINT
 
 #if GTEST_OS_WINDOWS
-  MOCK_METHOD(int, CTNullary, (), (Calltype(STDMETHODCALLTYPE)));
-  MOCK_METHOD(bool, CTUnary, (int), (Calltype(STDMETHODCALLTYPE)));
-  MOCK_METHOD(int, CTDecimal,
-              (bool b, char c, short d, int e, long f, float g, double h,
-               unsigned i, char* j, const std::string& k),
-              (Calltype(STDMETHODCALLTYPE)));
-  MOCK_METHOD(char, CTConst, (int), (const, Calltype(STDMETHODCALLTYPE)));
-  MOCK_METHOD((std::map<int, std::string>), CTReturnTypeWithComma, (),
-              (Calltype(STDMETHODCALLTYPE)));
+  MOCK_METHOD0_WITH_CALLTYPE(STDMETHODCALLTYPE, CTNullary, int());
+  MOCK_METHOD1_WITH_CALLTYPE(STDMETHODCALLTYPE, CTUnary, bool(int));
+  MOCK_METHOD10_WITH_CALLTYPE(STDMETHODCALLTYPE, CTDecimal,
+                              int(bool b, char c, short d, int e, long f,
+                                  float g, double h, unsigned i, char* j,
+                                  const std::string& k));
+  MOCK_CONST_METHOD1_WITH_CALLTYPE(STDMETHODCALLTYPE, CTConst, char(int));
+
+  // Tests that the function return type can contain unprotected comma.
+  MOCK_METHOD0_WITH_CALLTYPE(STDMETHODCALLTYPE, CTReturnTypeWithComma,
+                             std::map<int, std::string>());
 #endif  // GTEST_OS_WINDOWS
 
  private:
@@ -187,22 +181,22 @@ class MockFoo : public FooInterface {
 # pragma warning(pop)
 #endif
 
-class MockMethodFunctionMockerTest : public testing::Test {
+class FunctionMockerTest : public testing::Test {
  protected:
-  MockMethodFunctionMockerTest() : foo_(&mock_foo_) {}
+  FunctionMockerTest() : foo_(&mock_foo_) {}
 
   FooInterface* const foo_;
   MockFoo mock_foo_;
 };
 
 // Tests mocking a void-returning function.
-TEST_F(MockMethodFunctionMockerTest, MocksVoidFunction) {
+TEST_F(FunctionMockerTest, MocksVoidFunction) {
   EXPECT_CALL(mock_foo_, VoidReturning(Lt(100)));
   foo_->VoidReturning(0);
 }
 
 // Tests mocking a nullary function.
-TEST_F(MockMethodFunctionMockerTest, MocksNullaryFunction) {
+TEST_F(FunctionMockerTest, MocksNullaryFunction) {
   EXPECT_CALL(mock_foo_, Nullary())
       .WillOnce(DoDefault())
       .WillOnce(Return(1));
@@ -212,7 +206,7 @@ TEST_F(MockMethodFunctionMockerTest, MocksNullaryFunction) {
 }
 
 // Tests mocking a unary function.
-TEST_F(MockMethodFunctionMockerTest, MocksUnaryFunction) {
+TEST_F(FunctionMockerTest, MocksUnaryFunction) {
   EXPECT_CALL(mock_foo_, Unary(Eq(2)))
       .Times(2)
       .WillOnce(Return(true));
@@ -222,7 +216,7 @@ TEST_F(MockMethodFunctionMockerTest, MocksUnaryFunction) {
 }
 
 // Tests mocking a binary function.
-TEST_F(MockMethodFunctionMockerTest, MocksBinaryFunction) {
+TEST_F(FunctionMockerTest, MocksBinaryFunction) {
   EXPECT_CALL(mock_foo_, Binary(2, _))
       .WillOnce(Return(3));
 
@@ -230,17 +224,16 @@ TEST_F(MockMethodFunctionMockerTest, MocksBinaryFunction) {
 }
 
 // Tests mocking a decimal function.
-TEST_F(MockMethodFunctionMockerTest, MocksDecimalFunction) {
-  EXPECT_CALL(mock_foo_, Decimal(true, 'a', 0, 0, 1L, A<float>(),
-                                 Lt(100), 5U, NULL, "hi"))
+TEST_F(FunctionMockerTest, MocksDecimalFunction) {
+  EXPECT_CALL(mock_foo_, Decimal(true, 'a', 0, 0, 1L, A<float>(), Lt(100), 5U,
+                                 nullptr, "hi"))
       .WillOnce(Return(5));
 
   EXPECT_EQ(5, foo_->Decimal(true, 'a', 0, 0, 1, 0, 0, 5, nullptr, "hi"));
 }
 
 // Tests mocking a function that takes a non-const reference.
-TEST_F(MockMethodFunctionMockerTest,
-       MocksFunctionWithNonConstReferenceArgument) {
+TEST_F(FunctionMockerTest, MocksFunctionWithNonConstReferenceArgument) {
   int a = 0;
   EXPECT_CALL(mock_foo_, TakesNonConstReference(Ref(a)))
       .WillOnce(Return(true));
@@ -249,7 +242,7 @@ TEST_F(MockMethodFunctionMockerTest,
 }
 
 // Tests mocking a function that takes a const reference.
-TEST_F(MockMethodFunctionMockerTest, MocksFunctionWithConstReferenceArgument) {
+TEST_F(FunctionMockerTest, MocksFunctionWithConstReferenceArgument) {
   int a = 0;
   EXPECT_CALL(mock_foo_, TakesConstReference(Ref(a)))
       .WillOnce(Return("Hello"));
@@ -258,7 +251,7 @@ TEST_F(MockMethodFunctionMockerTest, MocksFunctionWithConstReferenceArgument) {
 }
 
 // Tests mocking a function that takes a const variable.
-TEST_F(MockMethodFunctionMockerTest, MocksFunctionWithConstArgument) {
+TEST_F(FunctionMockerTest, MocksFunctionWithConstArgument) {
   EXPECT_CALL(mock_foo_, TakesConst(Lt(10)))
       .WillOnce(DoDefault());
 
@@ -266,7 +259,7 @@ TEST_F(MockMethodFunctionMockerTest, MocksFunctionWithConstArgument) {
 }
 
 // Tests mocking functions overloaded on the number of arguments.
-TEST_F(MockMethodFunctionMockerTest, MocksFunctionsOverloadedOnArgumentNumber) {
+TEST_F(FunctionMockerTest, MocksFunctionsOverloadedOnArgumentNumber) {
   EXPECT_CALL(mock_foo_, OverloadedOnArgumentNumber())
       .WillOnce(Return(1));
   EXPECT_CALL(mock_foo_, OverloadedOnArgumentNumber(_))
@@ -277,7 +270,7 @@ TEST_F(MockMethodFunctionMockerTest, MocksFunctionsOverloadedOnArgumentNumber) {
 }
 
 // Tests mocking functions overloaded on the types of argument.
-TEST_F(MockMethodFunctionMockerTest, MocksFunctionsOverloadedOnArgumentType) {
+TEST_F(FunctionMockerTest, MocksFunctionsOverloadedOnArgumentType) {
   EXPECT_CALL(mock_foo_, OverloadedOnArgumentType(An<int>()))
       .WillOnce(Return(1));
   EXPECT_CALL(mock_foo_, OverloadedOnArgumentType(TypedEq<char>('a')))
@@ -288,8 +281,7 @@ TEST_F(MockMethodFunctionMockerTest, MocksFunctionsOverloadedOnArgumentType) {
 }
 
 // Tests mocking functions overloaded on the const-ness of this object.
-TEST_F(MockMethodFunctionMockerTest,
-       MocksFunctionsOverloadedOnConstnessOfThis) {
+TEST_F(FunctionMockerTest, MocksFunctionsOverloadedOnConstnessOfThis) {
   EXPECT_CALL(mock_foo_, OverloadedOnConstness());
   EXPECT_CALL(Const(mock_foo_), OverloadedOnConstness())
       .WillOnce(Return('a'));
@@ -298,7 +290,7 @@ TEST_F(MockMethodFunctionMockerTest,
   EXPECT_EQ('a', Const(*foo_).OverloadedOnConstness());
 }
 
-TEST_F(MockMethodFunctionMockerTest, MocksReturnTypeWithComma) {
+TEST_F(FunctionMockerTest, MocksReturnTypeWithComma) {
   const std::map<int, std::string> a_map;
   EXPECT_CALL(mock_foo_, ReturnTypeWithComma())
       .WillOnce(Return(a_map));
@@ -309,14 +301,14 @@ TEST_F(MockMethodFunctionMockerTest, MocksReturnTypeWithComma) {
   EXPECT_EQ(a_map, mock_foo_.ReturnTypeWithComma(42));
 }
 
-TEST_F(MockMethodFunctionMockerTest, MocksTypeWithTemplatedCopyCtor) {
+TEST_F(FunctionMockerTest, MocksTypeWithTemplatedCopyCtor) {
   EXPECT_CALL(mock_foo_, TypeWithTemplatedCopyCtor(_)).WillOnce(Return(true));
   EXPECT_TRUE(foo_->TypeWithTemplatedCopyCtor(TemplatedCopyable<int>()));
 }
 
 #if GTEST_OS_WINDOWS
 // Tests mocking a nullary function with calltype.
-TEST_F(MockMethodFunctionMockerTest, MocksNullaryFunctionWithCallType) {
+TEST_F(FunctionMockerTest, MocksNullaryFunctionWithCallType) {
   EXPECT_CALL(mock_foo_, CTNullary())
       .WillOnce(Return(-1))
       .WillOnce(Return(0));
@@ -326,7 +318,7 @@ TEST_F(MockMethodFunctionMockerTest, MocksNullaryFunctionWithCallType) {
 }
 
 // Tests mocking a unary function with calltype.
-TEST_F(MockMethodFunctionMockerTest, MocksUnaryFunctionWithCallType) {
+TEST_F(FunctionMockerTest, MocksUnaryFunctionWithCallType) {
   EXPECT_CALL(mock_foo_, CTUnary(Eq(2)))
       .Times(2)
       .WillOnce(Return(true))
@@ -337,23 +329,23 @@ TEST_F(MockMethodFunctionMockerTest, MocksUnaryFunctionWithCallType) {
 }
 
 // Tests mocking a decimal function with calltype.
-TEST_F(MockMethodFunctionMockerTest, MocksDecimalFunctionWithCallType) {
-  EXPECT_CALL(mock_foo_, CTDecimal(true, 'a', 0, 0, 1L, A<float>(),
-                                   Lt(100), 5U, NULL, "hi"))
+TEST_F(FunctionMockerTest, MocksDecimalFunctionWithCallType) {
+  EXPECT_CALL(mock_foo_, CTDecimal(true, 'a', 0, 0, 1L, A<float>(), Lt(100), 5U,
+                                   nullptr, "hi"))
       .WillOnce(Return(10));
 
-  EXPECT_EQ(10, foo_->CTDecimal(true, 'a', 0, 0, 1, 0, 0, 5, NULL, "hi"));
+  EXPECT_EQ(10, foo_->CTDecimal(true, 'a', 0, 0, 1, 0, 0, 5, nullptr, "hi"));
 }
 
 // Tests mocking functions overloaded on the const-ness of this object.
-TEST_F(MockMethodFunctionMockerTest, MocksFunctionsConstFunctionWithCallType) {
+TEST_F(FunctionMockerTest, MocksFunctionsConstFunctionWithCallType) {
   EXPECT_CALL(Const(mock_foo_), CTConst(_))
       .WillOnce(Return('a'));
 
   EXPECT_EQ('a', Const(*foo_).CTConst(0));
 }
 
-TEST_F(MockMethodFunctionMockerTest, MocksReturnTypeWithCommaAndCallType) {
+TEST_F(FunctionMockerTest, MocksReturnTypeWithCommaAndCallType) {
   const std::map<int, std::string> a_map;
   EXPECT_CALL(mock_foo_, CTReturnTypeWithComma())
       .WillOnce(Return(a_map));
@@ -367,15 +359,15 @@ class MockB {
  public:
   MockB() {}
 
-  MOCK_METHOD(void, DoB, ());
+  MOCK_METHOD0(DoB, void());
 
  private:
   GTEST_DISALLOW_COPY_AND_ASSIGN_(MockB);
 };
 
-// Tests that functions with no EXPECT_CALL() rules can be called any
+// Tests that functions with no EXPECT_CALL() ruls can be called any
 // number of times.
-TEST(MockMethodExpectCallTest, UnmentionedFunctionCanBeCalledAnyNumberOfTimes) {
+TEST(ExpectCallTest, UnmentionedFunctionCanBeCalledAnyNumberOfTimes) {
   {
     MockB b;
   }
@@ -412,21 +404,21 @@ class MockStack : public StackInterface<T> {
  public:
   MockStack() {}
 
-  MOCK_METHOD(void, Push, (const T& elem), ());
-  MOCK_METHOD(void, Pop, (), (final));
-  MOCK_METHOD(int, GetSize, (), (const, override));
-  MOCK_METHOD(const T&, GetTop, (), (const));
+  MOCK_METHOD1_T(Push, void(const T& elem));
+  MOCK_METHOD0_T(Pop, void());
+  MOCK_CONST_METHOD0_T(GetSize, int());  // NOLINT
+  MOCK_CONST_METHOD0_T(GetTop, const T&());
 
   // Tests that the function return type can contain unprotected comma.
-  MOCK_METHOD((std::map<int, int>), ReturnTypeWithComma, (), ());
-  MOCK_METHOD((std::map<int, int>), ReturnTypeWithComma, (int), (const));
+  MOCK_METHOD0_T(ReturnTypeWithComma, std::map<int, int>());
+  MOCK_CONST_METHOD1_T(ReturnTypeWithComma, std::map<int, int>(int));  // NOLINT
 
  private:
   GTEST_DISALLOW_COPY_AND_ASSIGN_(MockStack);
 };
 
 // Tests that template mock works.
-TEST(MockMethodTemplateMockTest, Works) {
+TEST(TemplateMockTest, Works) {
   MockStack<int> mock;
 
   EXPECT_CALL(mock, GetSize())
@@ -448,7 +440,7 @@ TEST(MockMethodTemplateMockTest, Works) {
   EXPECT_EQ(0, mock.GetSize());
 }
 
-TEST(MockMethodTemplateMockTest, MethodWithCommaInReturnTypeWorks) {
+TEST(TemplateMockTest, MethodWithCommaInReturnTypeWorks) {
   MockStack<int> mock;
 
   const std::map<int, int> a_map;
@@ -482,19 +474,17 @@ class MockStackWithCallType : public StackInterfaceWithCallType<T> {
  public:
   MockStackWithCallType() {}
 
-  MOCK_METHOD(void, Push, (const T& elem),
-              (Calltype(STDMETHODCALLTYPE), override));
-  MOCK_METHOD(void, Pop, (), (Calltype(STDMETHODCALLTYPE), override));
-  MOCK_METHOD(int, GetSize, (), (Calltype(STDMETHODCALLTYPE), override, const));
-  MOCK_METHOD(const T&, GetTop, (),
-              (Calltype(STDMETHODCALLTYPE), override, const));
+  MOCK_METHOD1_T_WITH_CALLTYPE(STDMETHODCALLTYPE, Push, void(const T& elem));
+  MOCK_METHOD0_T_WITH_CALLTYPE(STDMETHODCALLTYPE, Pop, void());
+  MOCK_CONST_METHOD0_T_WITH_CALLTYPE(STDMETHODCALLTYPE, GetSize, int());
+  MOCK_CONST_METHOD0_T_WITH_CALLTYPE(STDMETHODCALLTYPE, GetTop, const T&());
 
  private:
   GTEST_DISALLOW_COPY_AND_ASSIGN_(MockStackWithCallType);
 };
 
 // Tests that template mock with calltype works.
-TEST(MockMethodTemplateMockTestWithCallType, Works) {
+TEST(TemplateMockTestWithCallType, Works) {
   MockStackWithCallType<int> mock;
 
   EXPECT_CALL(mock, GetSize())
@@ -517,10 +507,10 @@ TEST(MockMethodTemplateMockTestWithCallType, Works) {
 }
 #endif  // GTEST_OS_WINDOWS
 
-#define MY_MOCK_METHODS1_                       \
-  MOCK_METHOD(void, Overloaded, ());            \
-  MOCK_METHOD(int, Overloaded, (int), (const)); \
-  MOCK_METHOD(bool, Overloaded, (bool f, int n))
+#define MY_MOCK_METHODS1_ \
+    MOCK_METHOD0(Overloaded, void()); \
+    MOCK_CONST_METHOD1(Overloaded, int(int n)); \
+    MOCK_METHOD2(Overloaded, bool(bool f, int n))
 
 class MockOverloadedOnArgNumber {
  public:
@@ -532,7 +522,7 @@ class MockOverloadedOnArgNumber {
   GTEST_DISALLOW_COPY_AND_ASSIGN_(MockOverloadedOnArgNumber);
 };
 
-TEST(MockMethodOverloadedMockMethodTest, CanOverloadOnArgNumberInMacroBody) {
+TEST(OverloadedMockMethodTest, CanOverloadOnArgNumberInMacroBody) {
   MockOverloadedOnArgNumber mock;
   EXPECT_CALL(mock, Overloaded());
   EXPECT_CALL(mock, Overloaded(1)).WillOnce(Return(2));
@@ -557,7 +547,7 @@ class MockOverloadedOnConstness {
   GTEST_DISALLOW_COPY_AND_ASSIGN_(MockOverloadedOnConstness);
 };
 
-TEST(MockMethodOverloadedMockMethodTest, CanOverloadOnConstnessInMacroBody) {
+TEST(OverloadedMockMethodTest, CanOverloadOnConstnessInMacroBody) {
   MockOverloadedOnConstness mock;
   const MockOverloadedOnConstness* const_mock = &mock;
   EXPECT_CALL(mock, Overloaded(1)).WillOnce(Return(2));
@@ -567,13 +557,13 @@ TEST(MockMethodOverloadedMockMethodTest, CanOverloadOnConstnessInMacroBody) {
   EXPECT_EQ(3, const_mock->Overloaded(1));
 }
 
-TEST(MockMethodMockFunctionTest, WorksForVoidNullary) {
+TEST(MockFunctionTest, WorksForVoidNullary) {
   MockFunction<void()> foo;
   EXPECT_CALL(foo, Call());
   foo.Call();
 }
 
-TEST(MockMethodMockFunctionTest, WorksForNonVoidNullary) {
+TEST(MockFunctionTest, WorksForNonVoidNullary) {
   MockFunction<int()> foo;
   EXPECT_CALL(foo, Call())
       .WillOnce(Return(1))
@@ -582,13 +572,13 @@ TEST(MockMethodMockFunctionTest, WorksForNonVoidNullary) {
   EXPECT_EQ(2, foo.Call());
 }
 
-TEST(MockMethodMockFunctionTest, WorksForVoidUnary) {
+TEST(MockFunctionTest, WorksForVoidUnary) {
   MockFunction<void(int)> foo;
   EXPECT_CALL(foo, Call(1));
   foo.Call(1);
 }
 
-TEST(MockMethodMockFunctionTest, WorksForNonVoidBinary) {
+TEST(MockFunctionTest, WorksForNonVoidBinary) {
   MockFunction<int(bool, int)> foo;
   EXPECT_CALL(foo, Call(false, 42))
       .WillOnce(Return(1))
@@ -600,7 +590,7 @@ TEST(MockMethodMockFunctionTest, WorksForNonVoidBinary) {
   EXPECT_EQ(3, foo.Call(true, 120));
 }
 
-TEST(MockMethodMockFunctionTest, WorksFor10Arguments) {
+TEST(MockFunctionTest, WorksFor10Arguments) {
   MockFunction<int(bool a0, char a1, int a2, int a3, int a4,
                    int a5, int a6, char a7, int a8, bool a9)> foo;
   EXPECT_CALL(foo, Call(_, 'a', _, _, _, _, _, _, _, _))
@@ -610,7 +600,7 @@ TEST(MockMethodMockFunctionTest, WorksFor10Arguments) {
   EXPECT_EQ(2, foo.Call(true, 'a', 0, 0, 0, 0, 0, 'b', 1, false));
 }
 
-TEST(MockMethodMockFunctionTest, AsStdFunction) {
+TEST(MockFunctionTest, AsStdFunction) {
   MockFunction<int(int)> foo;
   auto call = [](const std::function<int(int)> &f, int i) {
     return f(i);
@@ -621,7 +611,7 @@ TEST(MockMethodMockFunctionTest, AsStdFunction) {
   EXPECT_EQ(-2, call(foo.AsStdFunction(), 2));
 }
 
-TEST(MockMethodMockFunctionTest, AsStdFunctionReturnsReference) {
+TEST(MockFunctionTest, AsStdFunctionReturnsReference) {
   MockFunction<int&()> foo;
   int value = 1;
   EXPECT_CALL(foo, Call()).WillOnce(ReturnRef(value));
@@ -631,7 +621,7 @@ TEST(MockMethodMockFunctionTest, AsStdFunctionReturnsReference) {
   EXPECT_EQ(2, ref);
 }
 
-TEST(MockMethodMockFunctionTest, AsStdFunctionWithReferenceParameter) {
+TEST(MockFunctionTest, AsStdFunctionWithReferenceParameter) {
   MockFunction<int(int &)> foo;
   auto call = [](const std::function<int(int& )> &f, int &i) {
     return f(i);
@@ -643,54 +633,27 @@ TEST(MockMethodMockFunctionTest, AsStdFunctionWithReferenceParameter) {
 
 
 struct MockMethodSizes0 {
-  MOCK_METHOD(void, func, ());
+  MOCK_METHOD0(func, void());
 };
 struct MockMethodSizes1 {
-  MOCK_METHOD(void, func, (int));
+  MOCK_METHOD1(func, void(int));
 };
 struct MockMethodSizes2 {
-  MOCK_METHOD(void, func, (int, int));
+  MOCK_METHOD2(func, void(int, int));
 };
 struct MockMethodSizes3 {
-  MOCK_METHOD(void, func, (int, int, int));
+  MOCK_METHOD3(func, void(int, int, int));
 };
 struct MockMethodSizes4 {
-  MOCK_METHOD(void, func, (int, int, int, int));
+  MOCK_METHOD4(func, void(int, int, int, int));
 };
 
-TEST(MockMethodMockFunctionTest, MockMethodSizeOverhead) {
+TEST(MockFunctionTest, MockMethodSizeOverhead) {
   EXPECT_EQ(sizeof(MockMethodSizes0), sizeof(MockMethodSizes1));
   EXPECT_EQ(sizeof(MockMethodSizes0), sizeof(MockMethodSizes2));
   EXPECT_EQ(sizeof(MockMethodSizes0), sizeof(MockMethodSizes3));
   EXPECT_EQ(sizeof(MockMethodSizes0), sizeof(MockMethodSizes4));
 }
 
-void hasTwoParams(int, int);
-void MaybeThrows();
-void DoesntThrow() noexcept;
-struct MockMethodNoexceptSpecifier {
-  MOCK_METHOD(void, func1, (), (noexcept));
-  MOCK_METHOD(void, func2, (), (noexcept(true)));
-  MOCK_METHOD(void, func3, (), (noexcept(false)));
-  MOCK_METHOD(void, func4, (), (noexcept(noexcept(MaybeThrows()))));
-  MOCK_METHOD(void, func5, (), (noexcept(noexcept(DoesntThrow()))));
-  MOCK_METHOD(void, func6, (), (noexcept(noexcept(DoesntThrow())), const));
-  MOCK_METHOD(void, func7, (), (const, noexcept(noexcept(DoesntThrow()))));
-  // Put commas in the noexcept expression
-  MOCK_METHOD(void, func8, (), (noexcept(noexcept(hasTwoParams(1, 2))), const));
-};
-
-TEST(MockMethodMockFunctionTest, NoexceptSpecifierPreserved) {
-  EXPECT_TRUE(noexcept(std::declval<MockMethodNoexceptSpecifier>().func1()));
-  EXPECT_TRUE(noexcept(std::declval<MockMethodNoexceptSpecifier>().func2()));
-  EXPECT_FALSE(noexcept(std::declval<MockMethodNoexceptSpecifier>().func3()));
-  EXPECT_FALSE(noexcept(std::declval<MockMethodNoexceptSpecifier>().func4()));
-  EXPECT_TRUE(noexcept(std::declval<MockMethodNoexceptSpecifier>().func5()));
-  EXPECT_TRUE(noexcept(std::declval<MockMethodNoexceptSpecifier>().func6()));
-  EXPECT_TRUE(noexcept(std::declval<MockMethodNoexceptSpecifier>().func7()));
-  EXPECT_EQ(noexcept(std::declval<MockMethodNoexceptSpecifier>().func8()),
-            noexcept(hasTwoParams(1, 2)));
-}
-
-}  // namespace gmock_function_mocker_test
+}  // namespace gmock_generated_function_mockers_test
 }  // namespace testing

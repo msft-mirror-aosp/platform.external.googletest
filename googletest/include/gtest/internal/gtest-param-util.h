@@ -474,16 +474,8 @@ class ParameterizedTestSuiteInfoBase {
   GTEST_DISALLOW_COPY_AND_ASSIGN_(ParameterizedTestSuiteInfoBase);
 };
 
-// INTERNAL IMPLEMENTATION - DO NOT USE IN USER CODE.
-//
-// Report a the name of a test_suit as safe to ignore
-// as the side effect of construction of this type.
-struct MarkAsIgnored {
-  explicit MarkAsIgnored(const char* test_suite);
-};
-
 GTEST_API_ void InsertSyntheticTestCase(const std::string& name,
-                                        CodeLocation location, bool has_test_p);
+                                        CodeLocation location);
 
 // INTERNAL IMPLEMENTATION - DO NOT USE IN USER CODE.
 //
@@ -600,8 +592,7 @@ class ParameterizedTestSuiteInfo : public ParameterizedTestSuiteInfoBase {
 
     if (!generated_instantiations) {
       // There are no generaotrs, or they all generate nothing ...
-      InsertSyntheticTestCase(GetTestSuiteName(), code_location_,
-                              !tests_.empty());
+      InsertSyntheticTestCase(GetTestSuiteName(), code_location_);
     }
   }    // RegisterTests
 

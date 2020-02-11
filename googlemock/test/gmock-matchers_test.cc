@@ -140,7 +140,7 @@ Matcher<int> GreaterThan(int n) {
 
 std::string OfType(const std::string& type_name) {
 #if GTEST_HAS_RTTI
-  return IsReadableTypeName(type_name) ? " (of type " + type_name + ")" : "";
+  return " (of type " + type_name + ")";
 #else
   return "";
 #endif
@@ -2873,33 +2873,6 @@ TEST(ExplainMatchResultTest, WorksWithMonomorphicMatcher) {
   StringMatchResultListener listener2;
   EXPECT_FALSE(ExplainMatchResult(is_zero, 1.5, &listener2));
   EXPECT_EQ("", listener2.str());
-}
-
-MATCHER(ConstructNoArg, "") { return true; }
-MATCHER_P(Construct1Arg, arg1, "") { return true; }
-MATCHER_P2(Construct2Args, arg1, arg2, "") { return true; }
-
-TEST(MatcherConstruct, ExplicitVsImplicit) {
-  {
-    // No arg constructor can be constructed with empty brace.
-    ConstructNoArgMatcher m = {};
-    (void)m;
-    // And with no args
-    ConstructNoArgMatcher m2;
-    (void)m2;
-  }
-  {
-    // The one arg constructor has an explicit constructor.
-    // This is to prevent the implicit conversion.
-    using M = Construct1ArgMatcherP<int>;
-    EXPECT_TRUE((std::is_constructible<M, int>::value));
-    EXPECT_FALSE((std::is_convertible<int, M>::value));
-  }
-  {
-    // Multiple arg matchers can be constructed with an implicit construction.
-    Construct2ArgsMatcherP2<int, double> m = {1, 2.2};
-    (void)m;
-  }
 }
 
 MATCHER_P(Really, inner_matcher, "") {
@@ -6912,8 +6885,7 @@ TEST_F(PredicateFormatterFromMatcherTest, NoShortCircuitOnFailure) {
   EXPECT_FALSE(result);  // Implicit cast to bool.
   std::string expect =
       "Value of: dummy-name\nExpected: [DescribeTo]\n"
-      "  Actual: 1" +
-      OfType(internal::GetTypeName<Behavior>()) + ", [MatchAndExplain]";
+      "  Actual: 1, [MatchAndExplain]";
   EXPECT_EQ(expect, result.message());
 }
 
@@ -6924,8 +6896,7 @@ TEST_F(PredicateFormatterFromMatcherTest, DetectsFlakyShortCircuit) {
       "Value of: dummy-name\nExpected: [DescribeTo]\n"
       "  The matcher failed on the initial attempt; but passed when rerun to "
       "generate the explanation.\n"
-      "  Actual: 2" +
-      OfType(internal::GetTypeName<Behavior>()) + ", [MatchAndExplain]";
+      "  Actual: 2, [MatchAndExplain]";
   EXPECT_EQ(expect, result.message());
 }
 
