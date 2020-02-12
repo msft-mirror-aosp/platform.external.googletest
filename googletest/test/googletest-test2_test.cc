@@ -1,4 +1,4 @@
-// Copyright 2009, Google Inc.
+// Copyright 2008, Google Inc.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -28,22 +28,34 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //
-// Tests for Google C++ Mocking Framework (Google Mock)
-//
-// Some users use a build system that Google Mock doesn't support directly,
-// yet they still want to build and run Google Mock's own tests.  This file
-// includes most such tests, making it easier for these users to maintain
-// their build scripts (they just need to build this file, even though the
-// below list of actual *_test.cc files might change).
-#include "test/gmock-actions_test.cc"
-#include "test/gmock-cardinalities_test.cc"
-#include "test/gmock-generated-actions_test.cc"
-#include "test/gmock-generated-function-mockers_test.cc"
-#include "test/gmock-generated-matchers_test.cc"
-#include "test/gmock-internal-utils_test.cc"
-#include "test/gmock-matchers_test.cc"
-#include "test/gmock-more-actions_test.cc"
-#include "test/gmock-nice-strict_test.cc"
-#include "test/gmock-port_test.cc"
-#include "test/gmock-spec-builders_test.cc"
-#include "test/gmock_test.cc"
+// Tests for Google Test itself.  This verifies that the basic constructs of
+// Google Test work.
+
+#include "gtest/gtest.h"
+#include "googletest-param-test-test.h"
+
+using ::testing::Values;
+using ::testing::internal::ParamGenerator;
+
+// Tests that generators defined in a different translation unit
+// are functional. The test using extern_gen_2 is defined
+// in googletest-param-test-test.cc.
+ParamGenerator<int> extern_gen_2 = Values(33);
+
+// Tests that a parameterized test case can be defined in one translation unit
+// and instantiated in another. The test is defined in
+// googletest-param-test-test.cc and ExternalInstantiationTest fixture class is
+// defined in gtest-param-test_test.h.
+INSTANTIATE_TEST_SUITE_P(MultiplesOf33,
+                         ExternalInstantiationTest,
+                         Values(33, 66));
+
+// Tests that a parameterized test case can be instantiated
+// in multiple translation units. Another instantiation is defined
+// in googletest-param-test-test.cc and
+// InstantiationInMultipleTranslationUnitsTest fixture is defined in
+// gtest-param-test_test.h
+INSTANTIATE_TEST_SUITE_P(Sequence2,
+                         InstantiationInMultipleTranslationUnitsTest,
+                         Values(42*3, 42*4, 42*5));
+
