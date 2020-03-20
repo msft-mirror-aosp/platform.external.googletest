@@ -1068,6 +1068,38 @@ TEST_P(MyEnumTest, ChecksParamMoreThanZero) { EXPECT_GE(10, GetParam()); }
 INSTANTIATE_TEST_SUITE_P(MyEnumTests, MyEnumTest,
                          ::testing::Values(ENUM1, ENUM2, 0));
 
+namespace works_here {
+// Never used not instantiated, this should work.
+class NotUsedTest : public testing::TestWithParam<int> {};
+
+///////
+// Never used not instantiated, this should work.
+template <typename T>
+class NotUsedTypeTest : public testing::Test {};
+TYPED_TEST_SUITE_P(NotUsedTypeTest);
+
+// Used but not instantiated, this would fail. but...
+class NotInstantiatedTest : public testing::TestWithParam<int> {};
+// ... we mark is as allowed.
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(NotInstantiatedTest);
+
+TEST_P(NotInstantiatedTest, Used) { }
+
+using OtherName = NotInstantiatedTest;
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(OtherName);
+TEST_P(OtherName, Used) { }
+
+// Used but not instantiated, this would fail. but...
+template <typename T>
+class NotInstantiatedTypeTest : public testing::Test {};
+TYPED_TEST_SUITE_P(NotInstantiatedTypeTest);
+// ... we mark is as allowed.
+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(NotInstantiatedTypeTest);
+
+TYPED_TEST_P(NotInstantiatedTypeTest, Used) { }
+REGISTER_TYPED_TEST_SUITE_P(NotInstantiatedTypeTest, Used);
+}  // namespace works_here
+
 int main(int argc, char **argv) {
   // Used in TestGenerationTest test suite.
   AddGlobalTestEnvironment(TestGenerationTest::Environment::Instance());

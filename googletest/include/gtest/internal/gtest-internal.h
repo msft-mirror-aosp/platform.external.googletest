@@ -53,6 +53,7 @@
 #include <ctype.h>
 #include <float.h>
 #include <string.h>
+#include <cstdint>
 #include <iomanip>
 #include <limits>
 #include <map>
@@ -78,7 +79,16 @@
 #define GTEST_CONCAT_TOKEN_IMPL_(foo, bar) foo ## bar
 
 // Stringifies its argument.
-#define GTEST_STRINGIFY_(name) #name
+// Work around a bug in visual studio which doesn't accept code like this:
+//
+//   #define GTEST_STRINGIFY_(name) #name
+//   #define MACRO(a, b, c) ... GTEST_STRINGIFY_(a) ...
+//   MACRO(, x, y)
+//
+// Complaining about the argument to GTEST_STRINGIFY_ being empty.
+// This is allowed by the spec.
+#define GTEST_STRINGIFY_HELPER_(name, ...) #name
+#define GTEST_STRINGIFY_(...) GTEST_STRINGIFY_HELPER_(__VA_ARGS__, )
 
 namespace proto2 { class Message; }
 
@@ -607,8 +617,9 @@ class GTEST_API_ TypedTestSuitePState {
   // Verifies that registered_tests match the test names in
   // defined_test_names_; returns registered_tests if successful, or
   // aborts the program otherwise.
-  const char* VerifyRegisteredTestNames(
-      const char* file, int line, const char* registered_tests);
+  const char* VerifyRegisteredTestNames(const char* test_suite_name,
+                                        const char* file, int line,
+                                        const char* registered_tests);
 
  private:
   typedef ::std::map<std::string, CodeLocation> RegisteredTestsMap;
@@ -740,6 +751,11 @@ class TypeParameterizedTest<Fixture, TestSel, internal::None> {
   }
 };
 
+GTEST_API_ void RegisterTypeParameterizedTestSuite(const char* test_suite_name,
+                                                   CodeLocation code_location);
+GTEST_API_ void RegisterTypeParameterizedTestSuiteInstantiation(
+    const char* case_name);
+
 // TypeParameterizedTestSuite<Fixture, Tests, Types>::Register()
 // registers *all combinations* of 'Tests' and 'Types' with Google
 // Test.  The return value is insignificant - we just need to return
@@ -752,6 +768,7 @@ class TypeParameterizedTestSuite {
                        const char* test_names,
                        const std::vector<std::string>& type_names =
                            GenerateNames<DefaultNameGenerator, Types>()) {
+    RegisterTypeParameterizedTestSuiteInstantiation(case_name);
     std::string test_name = StripTrailingSpaces(
         GetPrefixUntilComma(test_names));
     if (!state->TestExists(test_name)) {
@@ -827,7 +844,7 @@ struct GTEST_API_ ConstCharPtr {
 
 // Helper for declaring std::string within 'if' statement
 // in pre C++17 build environment.
-struct GTEST_API_ TrueWithString {
+struct TrueWithString {
   TrueWithString() = default;
   explicit TrueWithString(const char* str) : value(str) {}
   explicit TrueWithString(const std::string& str) : value(str) {}
@@ -842,18 +859,18 @@ struct GTEST_API_ TrueWithString {
 // but it's good enough for our purposes.
 class GTEST_API_ Random {
  public:
-  static const UInt32 kMaxRange = 1u << 31;
+  static const uint32_t kMaxRange = 1u << 31;
 
-  explicit Random(UInt32 seed) : state_(seed) {}
+  explicit Random(uint32_t seed) : state_(seed) {}
 
-  void Reseed(UInt32 seed) { state_ = seed; }
+  void Reseed(uint32_t seed) { state_ = seed; }
 
   // Generates a random number from [0, range).  Crashes if 'range' is
   // 0 or greater than kMaxRange.
-  UInt32 Generate(UInt32 range);
+  uint32_t Generate(uint32_t range);
 
  private:
-  UInt32 state_;
+  uint32_t state_;
   GTEST_DISALLOW_COPY_AND_ASSIGN_(Random);
 };
 
@@ -1185,7 +1202,7 @@ struct FlatTupleBase<FlatTuple<T...>, IndexSequence<Idx...>>
 
 // Analog to std::tuple but with different tradeoffs.
 // This class minimizes the template instantiation depth, thus allowing more
-// elements that std::tuple would. std::tuple has been seen to require an
+// elements than std::tuple would. std::tuple has been seen to require an
 // instantiation depth of more than 10x the number of elements in some
 // implementations.
 // FlatTuple and ElemFromList are not recursive and have a fixed depth
@@ -1196,7 +1213,8 @@ template <typename... T>
 class FlatTuple
     : private FlatTupleBase<FlatTuple<T...>,
                             typename MakeIndexSequence<sizeof...(T)>::type> {
-  using Indices = typename FlatTuple::FlatTupleBase::Indices;
+  using Indices = typename FlatTupleBase<
+      FlatTuple<T...>, typename MakeIndexSequence<sizeof...(T)>::type>::Indices;
 
  public:
   FlatTuple() = default;
@@ -1387,12 +1405,15 @@ constexpr bool InstantiateTypedTestCase_P_IsDeprecated() { return true; }
       : public parent_class {                                                 \
    public:                                                                    \
     GTEST_TEST_CLASS_NAME_(test_suite_name, test_name)() {}                   \
+    ~GTEST_TEST_CLASS_NAME_(test_suite_name, test_name)() override = default; \
+    GTEST_DISALLOW_COPY_AND_ASSIGN_(GTEST_TEST_CLASS_NAME_(test_suite_name,   \
+                                                           test_name));       \
+    GTEST_DISALLOW_MOVE_AND_ASSIGN_(GTEST_TEST_CLASS_NAME_(test_suite_name,   \
+                                                           test_name));       \
                                                                               \
    private:                                                                   \
     void TestBody() override;                                                 \
     static ::testing::TestInfo* const test_info_ GTEST_ATTRIBUTE_UNUSED_;     \
-    GTEST_DISALLOW_COPY_AND_ASSIGN_(GTEST_TEST_CLASS_NAME_(test_suite_name,   \
-                                                           test_name));       \
   };                                                                          \
                                                                               \
   ::testing::TestInfo* const GTEST_TEST_CLASS_NAME_(test_suite_name,          \

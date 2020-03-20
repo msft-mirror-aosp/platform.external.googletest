@@ -39,7 +39,7 @@
 # pragma warning(disable:4100)
 #endif
 
-#include "gmock/gmock-generated-matchers.h"
+#include "gmock/gmock-matchers.h"
 
 #include <array>
 #include <iterator>
@@ -392,13 +392,6 @@ TEST(ElementsAreTest, AcceptsStringLiteral) {
   EXPECT_THAT(array, Not(ElementsAre("hi", "one", "too")));
 }
 
-#ifndef _MSC_VER
-
-// The following test passes a value of type const char[] to a
-// function template that expects const T&.  Some versions of MSVC
-// generates a compiler error C2665 for that.  We believe it's a bug
-// in MSVC.  Therefore this test is #if-ed out for MSVC.
-
 // Declared here with the size unknown.  Defined AFTER the following test.
 extern const char kHi[];
 
@@ -414,8 +407,6 @@ TEST(ElementsAreTest, AcceptsArrayWithUnknownSize) {
 }
 
 const char kHi[] = "hi";
-
-#endif  // _MSC_VER
 
 TEST(ElementsAreTest, MakesCopyOfArguments) {
   int x = 1;
@@ -773,8 +764,15 @@ MATCHER_P2(ReferencesAnyOf, variable1, variable2, "") {
 
 TEST(MatcherPnMacroTest, WorksWhenExplicitlyInstantiatedWithReferences) {
   UncopyableFoo foo1('1'), foo2('2'), foo3('3');
-  const Matcher<const UncopyableFoo&> m =
+  const Matcher<const UncopyableFoo&> const_m =
       ReferencesAnyOf<const UncopyableFoo&, const UncopyableFoo&>(foo1, foo2);
+
+  EXPECT_TRUE(const_m.Matches(foo1));
+  EXPECT_TRUE(const_m.Matches(foo2));
+  EXPECT_FALSE(const_m.Matches(foo3));
+
+  const Matcher<UncopyableFoo&> m =
+      ReferencesAnyOf<UncopyableFoo&, UncopyableFoo&>(foo1, foo2);
 
   EXPECT_TRUE(m.Matches(foo1));
   EXPECT_TRUE(m.Matches(foo2));

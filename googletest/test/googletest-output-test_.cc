@@ -96,6 +96,14 @@ INSTANTIATE_TEST_SUITE_P(PrintingFailingParams,
                          FailingParamTest,
                          testing::Values(2));
 
+// Tests that an empty value for the test suite basename yields just
+// the test name without any prior /
+class EmptyBasenameParamInst : public testing::TestWithParam<int> {};
+
+TEST_P(EmptyBasenameParamInst, Passes) { EXPECT_EQ(1, GetParam()); }
+
+INSTANTIATE_TEST_SUITE_P(, EmptyBasenameParamInst, testing::Values(1));
+
 static const char kGoldenString[] = "\"Line\0 1\"\nLine 2";
 
 TEST(NonfatalFailureTest, EscapesStringOperands) {
@@ -782,6 +790,17 @@ INSTANTIATE_TEST_SUITE_P(PrintingStrings,
                          testing::Values(std::string("a")),
                          ParamNameFunc);
 
+// The case where a suite has INSTANTIATE_TEST_SUITE_P but not TEST_P.
+using NoTests = ParamTest;
+INSTANTIATE_TEST_SUITE_P(ThisIsOdd, NoTests, ::testing::Values("Hello"));
+
+// fails under kErrorOnUninstantiatedParameterizedTest=true
+class DetectNotInstantiatedTest : public testing::TestWithParam<int> {};
+TEST_P(DetectNotInstantiatedTest, Used) { }
+
+// This would make the test failure from the above go away.
+// INSTANTIATE_TEST_SUITE_P(Fix, DetectNotInstantiatedTest, testing::Values(1));
+
 // This #ifdef block tests the output of typed tests.
 #if GTEST_HAS_TYPED_TEST
 
@@ -860,6 +879,21 @@ class TypedTestPNames {
 
 INSTANTIATE_TYPED_TEST_SUITE_P(UnsignedCustomName, TypedTestP, UnsignedTypes,
                               TypedTestPNames);
+
+template <typename T>
+class DetectNotInstantiatedTypesTest : public testing::Test {};
+TYPED_TEST_SUITE_P(DetectNotInstantiatedTypesTest);
+TYPED_TEST_P(DetectNotInstantiatedTypesTest, Used) {
+  TypeParam instantiate;
+  (void)instantiate;
+}
+REGISTER_TYPED_TEST_SUITE_P(DetectNotInstantiatedTypesTest, Used);
+
+// kErrorOnUninstantiatedTypeParameterizedTest=true would make the above fail.
+// Adding the following would make that test failure go away.
+//
+// typedef ::testing::Types<char, int, unsigned int> MyTypes;
+// INSTANTIATE_TYPED_TEST_SUITE_P(All, DetectNotInstantiatedTypesTest, MyTypes);
 
 #endif  // GTEST_HAS_TYPED_TEST_P
 
