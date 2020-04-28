@@ -57,7 +57,6 @@ cc_library_static {
     defaults: ["libgtest_defaults", "libgtest_host_defaults"],
     host_supported: true,
     vendor_available: true,
-    native_bridge_supported: true,
     srcs: ["src/gtest-all.cc"],
     rtti: true,
 }
@@ -67,7 +66,6 @@ cc_library_static {
     defaults: ["libgtest_defaults", "libgtest_host_defaults"],
     host_supported: true,
     vendor_available: true,
-    native_bridge_supported: true,
     srcs: ["src/gtest_main.cc"],
 }
 
@@ -84,11 +82,10 @@ cc_library_host_static {
     defaults: ["libgtest_host_defaults"],
 }
 
-cc_library {  // TODO: make this a cc_library_headers module
+cc_library {
     name: "libgtest_prod",
     defaults: ["libgtest_defaults", "libgtest_host_defaults"],
     host_supported: true,
-    native_bridge_supported: true,
     recovery_available: true,
     vendor_available: true,
     export_include_dirs: ["include"],

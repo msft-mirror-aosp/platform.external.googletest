@@ -1,7 +1,4 @@
 ########################################################################
-# Note: CMake support is community-based. The maintainers do not use CMake
-# internally.
-#
 # CMake build script for Google Test.
 #
 # To run the tests for Google Test itself on Linux, use 'make test' or
@@ -100,7 +97,7 @@ if (INSTALL_GTEST)
   set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated" CACHE INTERNAL "")
   set(cmake_files_install_dir "${CMAKE_INSTALL_LIBDIR}/cmake/${cmake_package_name}")
   set(version_file "${generated_dir}/${cmake_package_name}ConfigVersion.cmake")
-  write_basic_package_version_file(${version_file} VERSION ${GOOGLETEST_VERSION} COMPATIBILITY AnyNewerVersion)
+  write_basic_package_version_file(${version_file} COMPATIBILITY AnyNewerVersion)
   install(EXPORT ${targets_export_name}
     NAMESPACE ${cmake_package_name}::
     DESTINATION ${cmake_files_install_dir})
@@ -188,7 +185,7 @@ if (gtest_build_tests)
 "$project_bin = \"${CMAKE_BINARY_DIR}/bin/$<CONFIG>\"
 $env:Path = \"$project_bin;$env:Path\"
 & $args")
-  elseif (MINGW OR CYGWIN)
+  elseif (MINGW)
     file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/RunTest.ps1"
          CONTENT
 "$project_bin = (cygpath --windows ${CMAKE_BINARY_DIR}/bin)
@@ -225,7 +222,6 @@ $env:Path = \"$project_bin;$env:Path\"
     test/gtest-typed-test2_test.cc)
   cxx_test(gtest_unittest gtest_main)
   cxx_test(gtest-unittest-api_test gtest)
-  cxx_test(gtest_skip_in_environment_setup_test gtest_main)
   cxx_test(gtest_skip_test gtest_main)
 
   ############################################################
@@ -265,8 +261,6 @@ $env:Path = \"$project_bin;$env:Path\"
 
   cxx_executable(googletest-break-on-failure-unittest_ test gtest)
   py_test(googletest-break-on-failure-unittest)
-
-  py_test(gtest_skip_environment_check_output_test)
 
   # Visual Studio .NET 2003 does not support STL with exceptions disabled.
   if (NOT MSVC OR MSVC_VERSION GREATER 1310)  # 1310 is Visual Studio .NET 2003

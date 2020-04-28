@@ -201,6 +201,24 @@ TEST(ImplicitCastTest, CanUseImplicitConstructor) {
   EXPECT_TRUE(converted);
 }
 
+TEST(IteratorTraitsTest, WorksForSTLContainerIterators) {
+  StaticAssertTypeEq<int,
+      IteratorTraits< ::std::vector<int>::const_iterator>::value_type>();
+  StaticAssertTypeEq<bool,
+      IteratorTraits< ::std::list<bool>::iterator>::value_type>();
+}
+
+TEST(IteratorTraitsTest, WorksForPointerToNonConst) {
+  StaticAssertTypeEq<char, IteratorTraits<char*>::value_type>();
+  StaticAssertTypeEq<const void*, IteratorTraits<const void**>::value_type>();
+}
+
+TEST(IteratorTraitsTest, WorksForPointerToConst) {
+  StaticAssertTypeEq<char, IteratorTraits<const char*>::value_type>();
+  StaticAssertTypeEq<const void*,
+      IteratorTraits<const void* const*>::value_type>();
+}
+
 TEST(GtestCheckSyntaxTest, BehavesLikeASingleStatement) {
   if (AlwaysFalse())
     GTEST_CHECK_(false) << "This should never be executed; "
@@ -370,7 +388,12 @@ class RETest : public ::testing::Test {};
 
 // Defines StringTypes as the list of all string types that class RE
 // supports.
-typedef testing::Types< ::std::string, const char*> StringTypes;
+typedef testing::Types<
+    ::std::string,
+#  if GTEST_HAS_GLOBAL_STRING
+    ::string,
+#  endif  // GTEST_HAS_GLOBAL_STRING
+    const char*> StringTypes;
 
 TYPED_TEST_SUITE(RETest, StringTypes);
 
@@ -1030,7 +1053,7 @@ class AtomicCounterWithMutex {
           pthread_mutex_init(&memory_barrier_mutex, nullptr));
       GTEST_CHECK_POSIX_SUCCESS_(pthread_mutex_lock(&memory_barrier_mutex));
 
-      SleepMilliseconds(static_cast<int>(random_.Generate(30)));
+      SleepMilliseconds(random_.Generate(30));
 
       GTEST_CHECK_POSIX_SUCCESS_(pthread_mutex_unlock(&memory_barrier_mutex));
       GTEST_CHECK_POSIX_SUCCESS_(pthread_mutex_destroy(&memory_barrier_mutex));
@@ -1038,7 +1061,7 @@ class AtomicCounterWithMutex {
       // On Windows, performing an interlocked access puts up a memory barrier.
       volatile LONG dummy = 0;
       ::InterlockedIncrement(&dummy);
-      SleepMilliseconds(static_cast<int>(random_.Generate(30)));
+      SleepMilliseconds(random_.Generate(30));
       ::InterlockedIncrement(&dummy);
 #else
 # error "Memory barrier not implemented on this platform."

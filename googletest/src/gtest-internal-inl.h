@@ -99,14 +99,14 @@ const char kFlagfileFlag[] = "flagfile";
 // A valid random seed must be in [1, kMaxRandomSeed].
 const int kMaxRandomSeed = 99999;
 
-// g_help_flag is true if the --help flag or an equivalent form is
+// g_help_flag is true iff the --help flag or an equivalent form is
 // specified on the command line.
 GTEST_API_ extern bool g_help_flag;
 
 // Returns the current time in milliseconds.
 GTEST_API_ TimeInMillis GetTimeInMillis();
 
-// Returns true if Google Test should use colors in the output.
+// Returns true iff Google Test should use colors in the output.
 GTEST_API_ bool ShouldUseColor(bool stdout_is_tty);
 
 // Formats the given time in milliseconds as seconds.
@@ -266,7 +266,7 @@ GTEST_API_ bool ShouldShard(const char* total_shards_str,
 GTEST_API_ Int32 Int32FromEnvOrDie(const char* env_var, Int32 default_val);
 
 // Given the total number of shards, the shard index, and the test id,
-// returns true if the test should be run on this shard. The test id is
+// returns true iff the test should be run on this shard. The test id is
 // some arbitrary but unique non-negative integer assigned to each test
 // method. Assumes that 0 <= shard_index < total_shards.
 GTEST_API_ bool ShouldRunTestOnShard(
@@ -298,8 +298,7 @@ void ForEach(const Container& c, Functor functor) {
 // in range [0, v.size()).
 template <typename E>
 inline E GetElementOr(const std::vector<E>& v, int i, E default_value) {
-  return (i < 0 || i >= static_cast<int>(v.size())) ? default_value
-                                                    : v[static_cast<size_t>(i)];
+  return (i < 0 || i >= static_cast<int>(v.size())) ? default_value : v[i];
 }
 
 // Performs an in-place shuffle of a range of the vector's elements.
@@ -321,11 +320,8 @@ void ShuffleRange(internal::Random* random, int begin, int end,
   // http://en.wikipedia.org/wiki/Fisher-Yates_shuffle
   for (int range_width = end - begin; range_width >= 2; range_width--) {
     const int last_in_range = begin + range_width - 1;
-    const int selected =
-        begin +
-        static_cast<int>(random->Generate(static_cast<UInt32>(range_width)));
-    std::swap((*v)[static_cast<size_t>(selected)],
-              (*v)[static_cast<size_t>(last_in_range)]);
+    const int selected = begin + random->Generate(range_width);
+    std::swap((*v)[selected], (*v)[last_in_range]);
   }
 }
 
@@ -352,7 +348,7 @@ class TestPropertyKeyIs {
   // TestPropertyKeyIs has NO default constructor.
   explicit TestPropertyKeyIs(const std::string& key) : key_(key) {}
 
-  // Returns true if the test name of test property matches on key_.
+  // Returns true iff the test name of test property matches on key_.
   bool operator()(const TestProperty& test_property) const {
     return test_property.key() == key_;
   }
@@ -385,14 +381,14 @@ class GTEST_API_ UnitTestOptions {
 
   // Functions for processing the gtest_filter flag.
 
-  // Returns true if the wildcard pattern matches the string.  The
+  // Returns true iff the wildcard pattern matches the string.  The
   // first ':' or '\0' character in pattern marks the end of it.
   //
   // This recursive algorithm isn't very efficient, but is clear and
   // works well enough for matching test names, which are short.
   static bool PatternMatchesString(const char *pattern, const char *str);
 
-  // Returns true if the user-specified filter matches the test suite
+  // Returns true iff the user-specified filter matches the test suite
   // name and the test name.
   static bool FilterMatchesTest(const std::string& test_suite_name,
                                 const std::string& test_name);
@@ -577,10 +573,10 @@ class GTEST_API_ UnitTestImpl {
   // Gets the elapsed time, in milliseconds.
   TimeInMillis elapsed_time() const { return elapsed_time_; }
 
-  // Returns true if the unit test passed (i.e. all test suites passed).
+  // Returns true iff the unit test passed (i.e. all test suites passed).
   bool Passed() const { return !Failed(); }
 
-  // Returns true if the unit test failed (i.e. some test suite failed
+  // Returns true iff the unit test failed (i.e. some test suite failed
   // or something outside of all tests failed).
   bool Failed() const {
     return failed_test_suite_count() > 0 || ad_hoc_test_result()->Failed();
@@ -590,7 +586,7 @@ class GTEST_API_ UnitTestImpl {
   // total_test_suite_count() - 1. If i is not in that range, returns NULL.
   const TestSuite* GetTestSuite(int i) const {
     const int index = GetElementOr(test_suite_indices_, i, -1);
-    return index < 0 ? nullptr : test_suites_[static_cast<size_t>(i)];
+    return index < 0 ? nullptr : test_suites_[i];
   }
 
   //  Legacy API is deprecated but still available
@@ -602,7 +598,7 @@ class GTEST_API_ UnitTestImpl {
   // total_test_suite_count() - 1. If i is not in that range, returns NULL.
   TestSuite* GetMutableSuiteCase(int i) {
     const int index = GetElementOr(test_suite_indices_, i, -1);
-    return index < 0 ? nullptr : test_suites_[static_cast<size_t>(index)];
+    return index < 0 ? nullptr : test_suites_[index];
   }
 
   // Provides access to the event listener list.
@@ -911,7 +907,7 @@ class GTEST_API_ UnitTestImpl {
   // desired.
   OsStackTraceGetterInterface* os_stack_trace_getter_;
 
-  // True if PostFlagParsingInit() has been called.
+  // True iff PostFlagParsingInit() has been called.
   bool post_flag_parse_init_performed_;
 
   // The random number seed used at the beginning of the test run.
@@ -1087,8 +1083,8 @@ class StreamingListener : public EmptyTestEventListener {
       GTEST_CHECK_(sockfd_ != -1)
           << "Send() can be called only when there is a connection.";
 
-      const auto len = static_cast<size_t>(message.length());
-      if (write(sockfd_, message.c_str(), len) != static_cast<ssize_t>(len)) {
+      const int len = static_cast<int>(message.length());
+      if (write(sockfd_, message.c_str(), len) != len) {
         GTEST_LOG_(WARNING)
             << "stream_result_to: failed to stream to "
             << host_name_ << ":" << port_num_;

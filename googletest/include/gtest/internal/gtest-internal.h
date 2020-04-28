@@ -80,6 +80,7 @@
 // Stringifies its argument.
 #define GTEST_STRINGIFY_(name) #name
 
+class ProtocolMessage;
 namespace proto2 { class Message; }
 
 namespace testing {
@@ -189,7 +190,7 @@ GTEST_API_ std::string DiffStrings(const std::string& left,
 //   expected_value:      "5"
 //   actual_value:        "6"
 //
-// The ignoring_case parameter is true if the assertion is a
+// The ignoring_case parameter is true iff the assertion is a
 // *_STRCASEEQ*.  When it's true, the string " (ignoring case)" will
 // be inserted into the message.
 GTEST_API_ AssertionResult EqFailure(const char* expected_expression,
@@ -318,14 +319,14 @@ class FloatingPoint {
   // Returns the sign bit of this number.
   Bits sign_bit() const { return kSignBitMask & u_.bits_; }
 
-  // Returns true if this is NAN (not a number).
+  // Returns true iff this is NAN (not a number).
   bool is_nan() const {
     // It's a NAN if the exponent bits are all ones and the fraction
     // bits are not entirely zeros.
     return (exponent_bits() == kExponentBitMask) && (fraction_bits() != 0);
   }
 
-  // Returns true if this number is at most kMaxUlps ULP's away from
+  // Returns true iff this number is at most kMaxUlps ULP's away from
   // rhs.  In particular, this function:
   //
   //   - returns false if either number is (or both are) NAN.
@@ -506,8 +507,7 @@ struct SuiteApiResolver : T {
   using Test =
       typename std::conditional<sizeof(T) != 0, ::testing::Test, void>::type;
 
-  static SetUpTearDownSuiteFuncType GetSetUpCaseOrSuite(const char* filename,
-                                                        int line_num) {
+  static SetUpTearDownSuiteFuncType GetSetUpCaseOrSuite() {
     SetUpTearDownSuiteFuncType test_case_fp =
         GetNotDefaultOrNull(&T::SetUpTestCase, &Test::SetUpTestCase);
     SetUpTearDownSuiteFuncType test_suite_fp =
@@ -515,14 +515,12 @@ struct SuiteApiResolver : T {
 
     GTEST_CHECK_(!test_case_fp || !test_suite_fp)
         << "Test can not provide both SetUpTestSuite and SetUpTestCase, please "
-           "make sure there is only one present at "
-        << filename << ":" << line_num;
+           "make sure there is only one present ";
 
     return test_case_fp != nullptr ? test_case_fp : test_suite_fp;
   }
 
-  static SetUpTearDownSuiteFuncType GetTearDownCaseOrSuite(const char* filename,
-                                                           int line_num) {
+  static SetUpTearDownSuiteFuncType GetTearDownCaseOrSuite() {
     SetUpTearDownSuiteFuncType test_case_fp =
         GetNotDefaultOrNull(&T::TearDownTestCase, &Test::TearDownTestCase);
     SetUpTearDownSuiteFuncType test_suite_fp =
@@ -530,8 +528,7 @@ struct SuiteApiResolver : T {
 
     GTEST_CHECK_(!test_case_fp || !test_suite_fp)
         << "Test can not provide both TearDownTestSuite and TearDownTestCase,"
-           " please make sure there is only one present at"
-        << filename << ":" << line_num;
+           " please make sure there is only one present ";
 
     return test_case_fp != nullptr ? test_case_fp : test_suite_fp;
   }
@@ -704,16 +701,14 @@ class TypeParameterizedTest {
     // list.
     MakeAndRegisterTestInfo(
         (std::string(prefix) + (prefix[0] == '\0' ? "" : "/") + case_name +
-         "/" + type_names[static_cast<size_t>(index)])
+         "/" + type_names[index])
             .c_str(),
         StripTrailingSpaces(GetPrefixUntilComma(test_names)).c_str(),
         GetTypeName<Type>().c_str(),
         nullptr,  // No value parameter.
         code_location, GetTypeId<FixtureClass>(),
-        SuiteApiResolver<TestClass>::GetSetUpCaseOrSuite(
-            code_location.file.c_str(), code_location.line),
-        SuiteApiResolver<TestClass>::GetTearDownCaseOrSuite(
-            code_location.file.c_str(), code_location.line),
+        SuiteApiResolver<TestClass>::GetSetUpCaseOrSuite(),
+        SuiteApiResolver<TestClass>::GetTearDownCaseOrSuite(),
         new TestFactoryImpl<TestClass>);
 
     // Next, recurses (at compile time) with the tail of the type list.
@@ -848,7 +843,7 @@ class GTEST_API_ Random {
 };
 
 // Defining a variable of type CompileAssertTypesEqual<T1, T2> will cause a
-// compiler error if T1 and T2 are different types.
+// compiler error iff T1 and T2 are different types.
 template <typename T1, typename T2>
 struct CompileAssertTypesEqual;
 
@@ -856,16 +851,53 @@ template <typename T>
 struct CompileAssertTypesEqual<T, T> {
 };
 
+// Removes the reference from a type if it is a reference type,
+// otherwise leaves it unchanged.  This is the same as
+// tr1::remove_reference, which is not widely available yet.
+template <typename T>
+struct RemoveReference { typedef T type; };  // NOLINT
+template <typename T>
+struct RemoveReference<T&> { typedef T type; };  // NOLINT
+
+// A handy wrapper around RemoveReference that works when the argument
+// T depends on template parameters.
+#define GTEST_REMOVE_REFERENCE_(T) \
+    typename ::testing::internal::RemoveReference<T>::type
+
+// Removes const from a type if it is a const type, otherwise leaves
+// it unchanged.  This is the same as tr1::remove_const, which is not
+// widely available yet.
+template <typename T>
+struct RemoveConst { typedef T type; };  // NOLINT
+template <typename T>
+struct RemoveConst<const T> { typedef T type; };  // NOLINT
+
+// MSVC 8.0, Sun C++, and IBM XL C++ have a bug which causes the above
+// definition to fail to remove the const in 'const int[3]' and 'const
+// char[3][4]'.  The following specialization works around the bug.
+template <typename T, size_t N>
+struct RemoveConst<const T[N]> {
+  typedef typename RemoveConst<T>::type type[N];
+};
+
+// A handy wrapper around RemoveConst that works when the argument
+// T depends on template parameters.
+#define GTEST_REMOVE_CONST_(T) \
+    typename ::testing::internal::RemoveConst<T>::type
+
 // Turns const U&, U&, const U, and U all into U.
 #define GTEST_REMOVE_REFERENCE_AND_CONST_(T) \
-  typename std::remove_const<typename std::remove_reference<T>::type>::type
+    GTEST_REMOVE_CONST_(GTEST_REMOVE_REFERENCE_(T))
 
 // IsAProtocolMessage<T>::value is a compile-time bool constant that's
-// true if T is type proto2::Message or a subclass of it.
+// true iff T is type ProtocolMessage, proto2::Message, or a subclass
+// of those.
 template <typename T>
 struct IsAProtocolMessage
     : public bool_constant<
-          std::is_convertible<const T*, const ::proto2::Message*>::value> {};
+  std::is_convertible<const T*, const ::ProtocolMessage*>::value ||
+  std::is_convertible<const T*, const ::proto2::Message*>::value> {
+};
 
 // When the compiler sees expression IsContainerTest<C>(0), if C is an
 // STL-style container class, the first overload of IsContainerTest
@@ -932,7 +964,7 @@ template <typename C,
 struct IsRecursiveContainerImpl;
 
 template <typename C>
-struct IsRecursiveContainerImpl<C, false> : public std::false_type {};
+struct IsRecursiveContainerImpl<C, false> : public false_type {};
 
 // Since the IsRecursiveContainerImpl depends on the IsContainerTest we need to
 // obey the same inconsistencies as the IsContainerTest, namely check if
@@ -942,9 +974,9 @@ template <typename C>
 struct IsRecursiveContainerImpl<C, true> {
   using value_type = decltype(*std::declval<typename C::const_iterator>());
   using type =
-      std::is_same<typename std::remove_const<
-                       typename std::remove_reference<value_type>::type>::type,
-                   C>;
+      is_same<typename std::remove_const<
+                  typename std::remove_reference<value_type>::type>::type,
+              C>;
 };
 
 // IsRecursiveContainer<Type> is a unary compile-time predicate that
@@ -955,6 +987,13 @@ struct IsRecursiveContainerImpl<C, true> {
 // boost::filesystem::path.
 template <typename C>
 struct IsRecursiveContainer : public IsRecursiveContainerImpl<C>::type {};
+
+// EnableIf<condition>::type is void when 'Cond' is true, and
+// undefined when 'Cond' is false.  To use SFINAE to make a function
+// overload only apply when a particular expression is true, add
+// "typename EnableIf<expression>::type* = 0" as the last parameter.
+template<bool> struct EnableIf;
+template<> struct EnableIf<true> { typedef void type; };  // NOLINT
 
 // Utilities for native arrays.
 
@@ -1376,9 +1415,9 @@ constexpr bool InstantiateTypedTestCase_P_IsDeprecated() { return true; }
           #test_suite_name, #test_name, nullptr, nullptr,                     \
           ::testing::internal::CodeLocation(__FILE__, __LINE__), (parent_id), \
           ::testing::internal::SuiteApiResolver<                              \
-              parent_class>::GetSetUpCaseOrSuite(__FILE__, __LINE__),         \
+              parent_class>::GetSetUpCaseOrSuite(),                           \
           ::testing::internal::SuiteApiResolver<                              \
-              parent_class>::GetTearDownCaseOrSuite(__FILE__, __LINE__),      \
+              parent_class>::GetTearDownCaseOrSuite(),                        \
           new ::testing::internal::TestFactoryImpl<GTEST_TEST_CLASS_NAME_(    \
               test_suite_name, test_name)>);                                  \
   void GTEST_TEST_CLASS_NAME_(test_suite_name, test_name)::TestBody()

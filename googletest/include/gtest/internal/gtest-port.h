@@ -72,6 +72,10 @@
 //                              is/isn't available.
 //   GTEST_HAS_EXCEPTIONS     - Define it to 1/0 to indicate that exceptions
 //                              are enabled.
+//   GTEST_HAS_GLOBAL_STRING  - Define it to 1/0 to indicate that ::string
+//                              is/isn't available
+//   GTEST_HAS_GLOBAL_WSTRING - Define it to 1/0 to indicate that ::wstring
+//                              is/isn't available
 //   GTEST_HAS_POSIX_RE       - Define it to 1/0 to indicate that POSIX regular
 //                              expressions are/aren't available.
 //   GTEST_HAS_PTHREAD        - Define it to 1/0 to indicate that <pthread.h>
@@ -117,7 +121,6 @@
 //   GTEST_OS_FREEBSD  - FreeBSD
 //   GTEST_OS_FUCHSIA  - Fuchsia
 //   GTEST_OS_GNU_KFREEBSD - GNU/kFreeBSD
-//   GTEST_OS_HAIKU    - Haiku
 //   GTEST_OS_HPUX     - HP-UX
 //   GTEST_OS_LINUX    - Linux
 //     GTEST_OS_LINUX_ANDROID - Google Android
@@ -137,7 +140,7 @@
 //     GTEST_OS_WINDOWS_RT       - Windows Store App/WinRT
 //   GTEST_OS_ZOS      - z/OS
 //
-// Among the platforms, Cygwin, Linux, Mac OS X, and Windows have the
+// Among the platforms, Cygwin, Linux, Max OS X, and Windows have the
 // most stable support.  Since core members of the Google Test project
 // don't have access to other platforms, support for them may be less
 // stable.  If you notice any problems on your platform, please notify
@@ -202,6 +205,11 @@
 //   Mutex, MutexLock, ThreadLocal, GetThreadCount()
 //                            - synchronization primitives.
 //
+// Template meta programming:
+//   IteratorTraits - partial implementation of std::iterator_traits, which
+//                    is not available in libCstd when compiled with Sun C++.
+//
+//
 // Regular expressions:
 //   RE             - a simple regular expression class using the POSIX
 //                    Extended Regular Expression syntax on UNIX-like platforms
@@ -261,10 +269,12 @@
 # include <TargetConditionals.h>
 #endif
 
+// Brings in the definition of HAS_GLOBAL_STRING.  This must be done
+// BEFORE we test HAS_GLOBAL_STRING.
+#include <string>     // NOLINT
 #include <algorithm>  // NOLINT
 #include <iostream>   // NOLINT
 #include <sstream>    // NOLINT
-#include <string>     // NOLINT
 #include <tuple>
 #include <utility>
 #include <vector>  // NOLINT
@@ -357,7 +367,7 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
 #  include <android/api-level.h>  // NOLINT
 #endif
 
-// Defines this to true if Google Test can use POSIX regular expressions.
+// Defines this to true iff Google Test can use POSIX regular expressions.
 #ifndef GTEST_HAS_POSIX_RE
 # if GTEST_OS_LINUX_ANDROID
 // On Android, <regex.h> is only available starting with Gingerbread.
@@ -398,7 +408,7 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
 // The user didn't tell us whether exceptions are enabled, so we need
 // to figure it out.
 # if defined(_MSC_VER) && defined(_CPPUNWIND)
-// MSVC defines _CPPUNWIND to 1 if exceptions are enabled.
+// MSVC defines _CPPUNWIND to 1 iff exceptions are enabled.
 #  define GTEST_HAS_EXCEPTIONS 1
 # elif defined(__BORLANDC__)
 // C++Builder's implementation of the STL uses the _HAS_EXCEPTIONS
@@ -409,8 +419,8 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
 #  endif  // _HAS_EXCEPTIONS
 #  define GTEST_HAS_EXCEPTIONS _HAS_EXCEPTIONS
 # elif defined(__clang__)
-// clang defines __EXCEPTIONS if exceptions are enabled before clang 220714,
-// but if cleanups are enabled after that. In Obj-C++ files, there can be
+// clang defines __EXCEPTIONS iff exceptions are enabled before clang 220714,
+// but iff cleanups are enabled after that. In Obj-C++ files, there can be
 // cleanups for ObjC exceptions which also need cleanups, even if C++ exceptions
 // are disabled. clang has __has_feature(cxx_exceptions) which checks for C++
 // exceptions starting at clang r206352, but which checked for cleanups prior to
@@ -418,7 +428,7 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
 // __EXCEPTIONS && __has_feature(cxx_exceptions).
 #  define GTEST_HAS_EXCEPTIONS (__EXCEPTIONS && __has_feature(cxx_exceptions))
 # elif defined(__GNUC__) && __EXCEPTIONS
-// gcc defines __EXCEPTIONS to 1 if exceptions are enabled.
+// gcc defines __EXCEPTIONS to 1 iff exceptions are enabled.
 #  define GTEST_HAS_EXCEPTIONS 1
 # elif defined(__SUNPRO_CC)
 // Sun Pro CC supports exceptions.  However, there is no compile-time way of
@@ -426,7 +436,7 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
 // they are enabled unless the user tells us otherwise.
 #  define GTEST_HAS_EXCEPTIONS 1
 # elif defined(__IBMCPP__) && __EXCEPTIONS
-// xlC defines __EXCEPTIONS to 1 if exceptions are enabled.
+// xlC defines __EXCEPTIONS to 1 iff exceptions are enabled.
 #  define GTEST_HAS_EXCEPTIONS 1
 # elif defined(__HP_aCC)
 // Exception handling is in effect by default in HP aCC compiler. It has to
@@ -448,17 +458,27 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
 # error "::std::string isn't available."
 #endif  // !defined(GTEST_HAS_STD_STRING)
 
+#ifndef GTEST_HAS_GLOBAL_STRING
+# define GTEST_HAS_GLOBAL_STRING 0
+#endif  // GTEST_HAS_GLOBAL_STRING
+
 #ifndef GTEST_HAS_STD_WSTRING
 // The user didn't tell us whether ::std::wstring is available, so we need
 // to figure it out.
 // Cygwin 1.7 and below doesn't support ::std::wstring.
 // Solaris' libc++ doesn't support it either.  Android has
 // no support for it at least as recent as Froyo (2.2).
-#define GTEST_HAS_STD_WSTRING                                         \
-  (!(GTEST_OS_LINUX_ANDROID || GTEST_OS_CYGWIN || GTEST_OS_SOLARIS || \
-     GTEST_OS_HAIKU))
+# define GTEST_HAS_STD_WSTRING \
+    (!(GTEST_OS_LINUX_ANDROID || GTEST_OS_CYGWIN || GTEST_OS_SOLARIS))
 
 #endif  // GTEST_HAS_STD_WSTRING
+
+#ifndef GTEST_HAS_GLOBAL_WSTRING
+// The user didn't tell us whether ::wstring is available, so we need
+// to figure it out.
+# define GTEST_HAS_GLOBAL_WSTRING \
+    (GTEST_HAS_STD_WSTRING && GTEST_HAS_GLOBAL_STRING)
+#endif  // GTEST_HAS_GLOBAL_WSTRING
 
 // Determines whether RTTI is available.
 #ifndef GTEST_HAS_RTTI
@@ -467,13 +487,13 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
 
 # ifdef _MSC_VER
 
-#  ifdef _CPPRTTI  // MSVC defines this macro if RTTI is enabled.
+#  ifdef _CPPRTTI  // MSVC defines this macro iff RTTI is enabled.
 #   define GTEST_HAS_RTTI 1
 #  else
 #   define GTEST_HAS_RTTI 0
 #  endif
 
-// Starting with version 4.3.2, gcc defines __GXX_RTTI if RTTI is enabled.
+// Starting with version 4.3.2, gcc defines __GXX_RTTI iff RTTI is enabled.
 # elif defined(__GNUC__)
 
 #  ifdef __GXX_RTTI
@@ -530,11 +550,10 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
 //
 // To disable threading support in Google Test, add -DGTEST_HAS_PTHREAD=0
 // to your compiler flags.
-#define GTEST_HAS_PTHREAD                                                      \
-  (GTEST_OS_LINUX || GTEST_OS_MAC || GTEST_OS_HPUX || GTEST_OS_QNX ||          \
+#define GTEST_HAS_PTHREAD                                             \
+  (GTEST_OS_LINUX || GTEST_OS_MAC || GTEST_OS_HPUX || GTEST_OS_QNX || \
    GTEST_OS_FREEBSD || GTEST_OS_NACL || GTEST_OS_NETBSD || GTEST_OS_FUCHSIA || \
-   GTEST_OS_DRAGONFLY || GTEST_OS_GNU_KFREEBSD || GTEST_OS_OPENBSD ||          \
-   GTEST_OS_HAIKU)
+   GTEST_OS_DRAGONFLY || GTEST_OS_GNU_KFREEBSD || GTEST_OS_OPENBSD)
 #endif  // GTEST_HAS_PTHREAD
 
 #if GTEST_HAS_PTHREAD
@@ -588,12 +607,13 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
 
 // Determines whether to support death tests.
 // pops up a dialog window that cannot be suppressed programmatically.
-#if (GTEST_OS_LINUX || GTEST_OS_CYGWIN || GTEST_OS_SOLARIS ||             \
-     (GTEST_OS_MAC && !GTEST_OS_IOS) ||                                   \
-     (GTEST_OS_WINDOWS_DESKTOP && _MSC_VER) || GTEST_OS_WINDOWS_MINGW ||  \
-     GTEST_OS_AIX || GTEST_OS_HPUX || GTEST_OS_OPENBSD || GTEST_OS_QNX || \
-     GTEST_OS_FREEBSD || GTEST_OS_NETBSD || GTEST_OS_FUCHSIA ||           \
-     GTEST_OS_DRAGONFLY || GTEST_OS_GNU_KFREEBSD || GTEST_OS_HAIKU)
+#if (GTEST_OS_LINUX || GTEST_OS_CYGWIN || GTEST_OS_SOLARIS ||   \
+     (GTEST_OS_MAC && !GTEST_OS_IOS) ||                         \
+     (GTEST_OS_WINDOWS_DESKTOP && _MSC_VER) ||                  \
+     GTEST_OS_WINDOWS_MINGW || GTEST_OS_AIX || GTEST_OS_HPUX || \
+     GTEST_OS_OPENBSD || GTEST_OS_QNX || GTEST_OS_FREEBSD || \
+     GTEST_OS_NETBSD || GTEST_OS_FUCHSIA || GTEST_OS_DRAGONFLY || \
+     GTEST_OS_GNU_KFREEBSD)
 # define GTEST_HAS_DEATH_TEST 1
 #endif
 
@@ -799,18 +819,6 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
 # define GTEST_ATTRIBUTE_NO_SANITIZE_ADDRESS_
 #endif  // __clang__
 
-// A function level attribute to disable HWAddressSanitizer instrumentation.
-#if defined(__clang__)
-# if __has_feature(hwaddress_sanitizer)
-#  define GTEST_ATTRIBUTE_NO_SANITIZE_HWADDRESS_ \
-       __attribute__((no_sanitize("hwaddress")))
-# else
-#  define GTEST_ATTRIBUTE_NO_SANITIZE_HWADDRESS_
-# endif  // __has_feature(hwaddress_sanitizer)
-#else
-# define GTEST_ATTRIBUTE_NO_SANITIZE_HWADDRESS_
-#endif  // __clang__
-
 // A function level attribute to disable ThreadSanitizer instrumentation.
 #if defined(__clang__)
 # if __has_feature(thread_sanitizer)
@@ -864,8 +872,30 @@ struct StaticAssertTypeEqHelper<T, T> {
   enum { value = true };
 };
 
+// Same as std::is_same<>.
+template <typename T, typename U>
+struct IsSame {
+  enum { value = false };
+};
+template <typename T>
+struct IsSame<T, T> {
+  enum { value = true };
+};
+
 // Evaluates to the number of elements in 'array'.
 #define GTEST_ARRAY_SIZE_(array) (sizeof(array) / sizeof(array[0]))
+
+#if GTEST_HAS_GLOBAL_STRING
+typedef ::string string;
+#else
+typedef ::std::string string;
+#endif  // GTEST_HAS_GLOBAL_STRING
+
+#if GTEST_HAS_GLOBAL_WSTRING
+typedef ::wstring wstring;
+#elif GTEST_HAS_STD_WSTRING
+typedef ::std::wstring wstring;
+#endif  // GTEST_HAS_GLOBAL_WSTRING
 
 // A helper for suppressing warnings on constant condition.  It just
 // returns 'condition'.
@@ -888,15 +918,21 @@ class GTEST_API_ RE {
   // Constructs an RE from a string.
   RE(const ::std::string& regex) { Init(regex.c_str()); }  // NOLINT
 
+# if GTEST_HAS_GLOBAL_STRING
+
+  RE(const ::string& regex) { Init(regex.c_str()); }  // NOLINT
+
+# endif  // GTEST_HAS_GLOBAL_STRING
+
   RE(const char* regex) { Init(regex); }  // NOLINT
   ~RE();
 
   // Returns the string representation of the regex.
   const char* pattern() const { return pattern_; }
 
-  // FullMatch(str, re) returns true if regular expression re matches
+  // FullMatch(str, re) returns true iff regular expression re matches
   // the entire str.
-  // PartialMatch(str, re) returns true if regular expression re
+  // PartialMatch(str, re) returns true iff regular expression re
   // matches a substring of str (including str itself).
   static bool FullMatch(const ::std::string& str, const RE& re) {
     return FullMatch(str.c_str(), re);
@@ -904,6 +940,17 @@ class GTEST_API_ RE {
   static bool PartialMatch(const ::std::string& str, const RE& re) {
     return PartialMatch(str.c_str(), re);
   }
+
+# if GTEST_HAS_GLOBAL_STRING
+
+  static bool FullMatch(const ::string& str, const RE& re) {
+    return FullMatch(str.c_str(), re);
+  }
+  static bool PartialMatch(const ::string& str, const RE& re) {
+    return PartialMatch(str.c_str(), re);
+  }
+
+# endif  // GTEST_HAS_GLOBAL_STRING
 
   static bool FullMatch(const char* str, const RE& re);
   static bool PartialMatch(const char* str, const RE& re);
@@ -1013,6 +1060,19 @@ inline void FlushInfoLog() { fflush(nullptr); }
   if (const int gtest_error = (posix_call)) \
     GTEST_LOG_(FATAL) << #posix_call << "failed with error " \
                       << gtest_error
+
+// Adds reference to a type if it is not a reference type,
+// otherwise leaves it unchanged.  This is the same as
+// tr1::add_reference, which is not widely available yet.
+template <typename T>
+struct AddReference { typedef T& type; };  // NOLINT
+template <typename T>
+struct AddReference<T&> { typedef T& type; };  // NOLINT
+
+// A handy wrapper around AddReference that works when the argument T
+// depends on template parameters.
+#define GTEST_ADD_REFERENCE_(T) \
+    typename ::testing::internal::AddReference<T>::type
 
 // Transforms "T" into "const T&" according to standard reference collapsing
 // rules (this is only needed as a backport for C++98 compilers that do not
@@ -1147,6 +1207,9 @@ std::vector<std::string> GetInjectableArgvs();
 // Deprecated: pass the args vector by value instead.
 void SetInjectableArgvs(const std::vector<std::string>* new_argvs);
 void SetInjectableArgvs(const std::vector<std::string>& new_argvs);
+#if GTEST_HAS_GLOBAL_STRING
+void SetInjectableArgvs(const std::vector< ::string>& new_argvs);
+#endif  // GTEST_HAS_GLOBAL_STRING
 void ClearInjectableArgvs();
 
 #endif  // GTEST_HAS_DEATH_TEST
@@ -1238,7 +1301,7 @@ class GTEST_API_ AutoHandle {
   void Reset(Handle handle);
 
  private:
-  // Returns true if the handle is a valid handle object that can be closed.
+  // Returns true iff the handle is a valid handle object that can be closed.
   bool IsCloseable() const;
 
   Handle handle_;
@@ -1340,7 +1403,7 @@ class ThreadWithParam : public ThreadWithParamBase {
   // When non-NULL, used to block execution until the controller thread
   // notifies.
   Notification* const thread_can_start_;
-  bool finished_;  // true if we know that the thread function has finished.
+  bool finished_;  // true iff we know that the thread function has finished.
   pthread_t thread_;  // The native thread object.
 
   GTEST_DISALLOW_COPY_AND_ASSIGN_(ThreadWithParam);
@@ -1893,8 +1956,37 @@ class GTEST_API_ ThreadLocal {
 // we cannot detect it.
 GTEST_API_ size_t GetThreadCount();
 
-template <bool B>
-using bool_constant = std::integral_constant<bool, B>;
+template <bool bool_value>
+struct bool_constant {
+  typedef bool_constant<bool_value> type;
+  static const bool value = bool_value;
+};
+template <bool bool_value> const bool bool_constant<bool_value>::value;
+
+typedef bool_constant<false> false_type;
+typedef bool_constant<true> true_type;
+
+template <typename T, typename U>
+struct is_same : public false_type {};
+
+template <typename T>
+struct is_same<T, T> : public true_type {};
+
+template <typename Iterator>
+struct IteratorTraits {
+  typedef typename Iterator::value_type value_type;
+};
+
+
+template <typename T>
+struct IteratorTraits<T*> {
+  typedef T value_type;
+};
+
+template <typename T>
+struct IteratorTraits<const T*> {
+  typedef T value_type;
+};
 
 #if GTEST_OS_WINDOWS
 # define GTEST_PATH_SEP_ "\\"

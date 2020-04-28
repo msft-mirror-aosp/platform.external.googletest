@@ -1,7 +1,4 @@
 ########################################################################
-# Note: CMake support is community-based. The maintainers do not use CMake
-# internally.
-#
 # CMake build script for Google Mock.
 #
 # To run the tests for Google Mock itself on Linux, use 'make test' or
@@ -52,7 +49,7 @@ endif()
 # targets to the current scope.  We are placing Google Test's binary
 # directory in a subdirectory of our own as VC compilation may break
 # if they are the same (the default).
-add_subdirectory("${gtest_dir}" "${gmock_BINARY_DIR}/${gtest_dir}")
+add_subdirectory("${gtest_dir}" "${gmock_BINARY_DIR}/gtest")
 
 
 # These commands only run if this is the main project
@@ -142,20 +139,12 @@ if (gmock_build_tests)
 "$project_bin = \"${CMAKE_BINARY_DIR}/bin/$<CONFIG>\"
 $env:Path = \"$project_bin;$env:Path\"
 & $args")
-  elseif (MINGW OR CYGWIN)
+  elseif (MINGW)
     file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/RunTest.ps1"
          CONTENT
 "$project_bin = (cygpath --windows ${CMAKE_BINARY_DIR}/bin)
 $env:Path = \"$project_bin;$env:Path\"
 & $args")
-  endif()
-
-  if (MINGW OR CYGWIN)
-    if (CMAKE_VERSION VERSION_LESS "2.8.12")
-      add_compile_options("-Wa,-mbig-obj")
-    else()
-      add_definitions("-Wa,-mbig-obj")
-    endif()
   endif()
 
   ############################################################
@@ -170,6 +159,9 @@ $env:Path = \"$project_bin;$env:Path\"
   cxx_test(gmock-generated-matchers_test gmock_main)
   cxx_test(gmock-internal-utils_test gmock_main)
   cxx_test(gmock-matchers_test gmock_main)
+  if (MINGW)
+    target_compile_options(gmock-matchers_test PRIVATE "-Wa,-mbig-obj")
+  endif()
   cxx_test(gmock-more-actions_test gmock_main)
   cxx_test(gmock-nice-strict_test gmock_main)
   cxx_test(gmock-port_test gmock_main)
