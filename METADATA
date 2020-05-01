@@ -10,6 +10,7 @@ third_party {
     value: "https://github.com/google/googletest.git"
   }
   version: "e3f0319d89f4cbf32993de595d984183b1a9fc57"
+  license_type: NOTICE
   last_upgrade_date {
     year: 2020
     month: 4
