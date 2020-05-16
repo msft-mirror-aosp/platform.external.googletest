@@ -401,7 +401,7 @@ alone with them. For a list of matchers gMock provides, read
 your [own matchers](../../googlemock/docs/cook_book.md#NewMatchers) too.
 
 gMock is bundled with googletest, so you don't need to add any build dependency
-in order to take advantage of this. Just include `"testing/base/public/gmock.h"`
+in order to take advantage of this. Just include `"gmock/gmock.h"`
 and you're ready to go.
 
 ### More String Assertions
@@ -863,7 +863,7 @@ restored afterwards, so you need not do that yourself. For example:
 
 ```c++
 int main(int argc, char** argv) {
-  InitGoogle(argv[0], &argc, &argv, true);
+  ::testing::InitGoogleTest(&argc, argv);
   ::testing::FLAGS_gtest_death_test_style = "fast";
   return RUN_ALL_TESTS();
 }
@@ -1776,7 +1776,7 @@ In frameworks that report a failure by throwing an exception, you could catch
 the exception and assert on it. But googletest doesn't use exceptions, so how do
 we test that a piece of code generates an expected failure?
 
-gunit-spi.h contains some constructs to do this. After #including this header,
+`"gtest/gtest-spi.h"` contains some constructs to do this. After #including this header,
 you can use
 
 ```c++
@@ -1924,8 +1924,8 @@ To obtain a `TestInfo` object for the currently running test, call
 ```
 
 `current_test_info()` returns a null pointer if no test is running. In
-particular, you cannot find the test suite name in `TestSuiteSetUp()`,
-`TestSuiteTearDown()` (where you know the test suite name implicitly), or
+particular, you cannot find the test suite name in `SetUpTestSuite()`,
+`TearDownTestSuite()` (where you know the test suite name implicitly), or
 functions called from them.
 
 ## Extending googletest by Handling Test Events
@@ -2261,6 +2261,12 @@ disable colors, or let googletest decide. When the value is `auto`, googletest
 will use colors if and only if the output goes to a terminal and (on non-Windows
 platforms) the `TERM` environment variable is set to `xterm` or `xterm-color`.
 
+#### Suppressing test passes
+
+By default, googletest prints 1 line of output for each test, indicating if it
+passed or failed. To show only test failures, run the test program with
+`--gtest_brief=1`, or set the GTEST_BRIEF environment variable to `1`.
+
 #### Suppressing the Elapsed Time
 
 By default, googletest prints the time it takes to run each test. To disable
@@ -2282,8 +2288,7 @@ environment variable to `0`.
 
 googletest can emit a detailed XML report to a file in addition to its normal
 textual output. The report contains the duration of each test, and thus can help
-you identify slow tests. The report is also used by the http://unittest
-dashboard to show per-test-method error messages.
+you identify slow tests.
 
 To generate the XML report, set the `GTEST_OUTPUT` environment variable or the
 `--gtest_output` flag to the string `"xml:path_to_output_file"`, which will
