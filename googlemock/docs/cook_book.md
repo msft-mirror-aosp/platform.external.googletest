@@ -421,7 +421,7 @@ sadly they are side effects of C++'s limitations):
     `NiceMock<StrictMock<MockFoo> >`) is **not** supported.
 2.  `NiceMock<MockFoo>` and `StrictMock<MockFoo>` may not work correctly if the
     destructor of `MockFoo` is not virtual. We would like to fix this, but it
-    requires cleaning up existing tests. http://b/28934720 tracks the issue.
+    requires cleaning up existing tests.
 3.  During the constructor or destructor of `MockFoo`, the mock object is *not*
     nice or strict. This may cause surprises if the constructor or destructor
     calls a mock method on `this` object. (This behavior, however, is consistent
@@ -1712,8 +1712,8 @@ brittle tests. For example, we may care about `A` occurring before both `B` and
 the test should reflect our real intent, instead of being overly constraining.
 
 gMock allows you to impose an arbitrary DAG (directed acyclic graph) on the
-calls. One way to express the DAG is to use the [After](#AfterClause) clause of
-`EXPECT_CALL`.
+calls. One way to express the DAG is to use the
+[After](cheat_sheet.md#AfterClause) clause of `EXPECT_CALL`.
 
 Another way is via the `InSequence()` clause (not the same as the `InSequence`
 class), which we borrowed from jMock 2. It's less flexible than `After()`, but
