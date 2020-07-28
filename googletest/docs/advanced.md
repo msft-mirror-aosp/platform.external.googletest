@@ -1006,7 +1006,7 @@ TEST(FooTest, Bar) {
                  // in Subroutine() to abort the entire test.
 
   // The actual behavior: the function goes on after Subroutine() returns.
-  int* p = NULL;
+  int* p = nullptr;
   *p = 3;  // Segfault!
 }
 ```
@@ -1193,7 +1193,7 @@ class FooTest : public ::testing::Test {
   // Can be omitted if not needed.
   static void TearDownTestSuite() {
     delete shared_resource_;
-    shared_resource_ = NULL;
+    shared_resource_ = nullptr;
   }
 
   // You can define per-test set-up logic as usual.
@@ -1206,7 +1206,7 @@ class FooTest : public ::testing::Test {
   static T* shared_resource_;
 };
 
-T* FooTest::shared_resource_ = NULL;
+T* FooTest::shared_resource_ = nullptr;
 
 TEST_F(FooTest, Test1) {
   ... you can refer to shared_resource_ here ...
@@ -1490,7 +1490,7 @@ for conciseness:
 ```c++
 enum class MyType { MY_FOO = 0, MY_BAR = 1 };
 
-class MyTestSuite : public testing::TestWithParam<std::tuple<MyType, string>> {
+class MyTestSuite : public testing::TestWithParam<std::tuple<MyType, std::string>> {
 };
 
 INSTANTIATE_TEST_SUITE_P(
@@ -1499,7 +1499,7 @@ INSTANTIATE_TEST_SUITE_P(
         testing::Values(MyType::VALUE_0, MyType::VALUE_1),
         testing::ValuesIn("", "")),
     [](const testing::TestParamInfo<MyTestSuite::ParamType>& info) {
-      string name = absl::StrCat(
+      std::string name = absl::StrCat(
           std::get<0>(info.param) == MY_FOO ? "Foo" : "Bar", "_",
           std::get<1>(info.param));
       absl::c_replace_if(name, [](char c) { return !std::isalnum(c); }, '_');
