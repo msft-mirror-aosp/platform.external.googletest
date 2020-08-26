@@ -76,8 +76,6 @@ following notable projects:
 *   [Protocol Buffers](https://github.com/google/protobuf), Google's data
     interchange format.
 *   The [OpenCV](http://opencv.org/) computer vision library.
-*   [tiny-dnn](https://github.com/tiny-dnn/tiny-dnn): header only,
-    dependency-free deep learning framework in C++11.
 
 ## Related Open Source Projects
 
@@ -102,9 +100,9 @@ runs tests from your binary in parallel to provide significant speed-up.
 is a VS Code extension allowing to view Google Tests in a tree view, and
 run/debug your tests.
 
-[Catch2 and Google Test Explorer](https://github.com/matepek/vscode-catch2-test-adapter)
-is a VS Code extension allowing to view Google Tests in a tree view, and
-run/debug your tests.
+[C++ TestMate](https://github.com/matepek/vscode-catch2-test-adapter) is a VS
+Code extension allowing to view Google Tests in a tree view, and run/debug your
+tests.
 
 [Cornichon](https://pypi.org/project/cornichon/) is a small Gherkin DSL parser
 that generates stub code for Google Test.
