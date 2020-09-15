@@ -2,6 +2,8 @@
 
 <!-- GOOGLETEST_CM0016 DO NOT DELETE -->
 
+<!-- GOOGLETEST_CM0035 DO NOT DELETE -->
+
 ## Introduction
 
 Now that you have read the [googletest Primer](primer.md) and learned how to
@@ -908,6 +910,12 @@ handlers registered with `pthread_atfork(3)`.
 
 
 ## Using Assertions in Sub-routines
+
+Note: If you want to put a series of test assertions in a subroutine to check
+for a complex condition, consider using
+[a custom GMock matcher](../../googlemock/docs/cook_book.md#NewMatchers)
+instead. This lets you provide a more readable error message in case of failure
+and avoid all of the issues described below.
 
 ### Adding Traces to Assertions
 
