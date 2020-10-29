@@ -449,6 +449,9 @@ class Action {
     }
   };
 
+  template <typename G>
+  using IsCompatibleFunctor = std::is_constructible<std::function<F>, G>;
+
  public:
   typedef typename internal::Function<F>::Result Result;
   typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
@@ -460,15 +463,13 @@ class Action {
   // Construct an Action from a specified callable.
   // This cannot take std::function directly, because then Action would not be
   // directly constructible from lambda (it would require two conversions).
-  template <typename G,
-            typename IsCompatibleFunctor =
-                ::std::is_constructible<::std::function<F>, G>,
-            typename IsNoArgsFunctor =
-                ::std::is_constructible<::std::function<Result()>, G>,
-            typename = typename ::std::enable_if<internal::disjunction<
-                IsCompatibleFunctor, IsNoArgsFunctor>::value>::type>
+  template <
+      typename G,
+      typename = typename std::enable_if<internal::disjunction<
+          IsCompatibleFunctor<G>, std::is_constructible<std::function<Result()>,
+                                                        G>>::value>::type>
   Action(G&& fun) {  // NOLINT
-    Init(::std::forward<G>(fun), IsCompatibleFunctor());
+    Init(::std::forward<G>(fun), IsCompatibleFunctor<G>());
   }
 
   // Constructs an Action from its implementation.
@@ -1637,6 +1638,9 @@ auto InvokeArgument(F f, Args... args) -> decltype(f(args...)) {
                                                                               \
    public:                                                                    \
     using base_type::base_type;                                               \
+    name##Action() = default;                                                 \
+    /* Work around https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82134 */      \
+    name##Action(const name##Action&) { }                                     \
     template <typename F>                                                     \
     class gmock_Impl : public ::testing::ActionInterface<F> {                 \
      public:                                                                  \
@@ -1654,6 +1658,7 @@ auto InvokeArgument(F f, Args... args) -> decltype(f(args...)) {
       return_type gmock_PerformImpl(GMOCK_ACTION_ARG_TYPES_AND_NAMES_) const; \
     };                                                                        \
   };                                                                          \
+  inline name##Action name() GTEST_MUST_USE_RESULT_;                          \
   inline name##Action name() { return name##Action(); }                       \
   template <typename F>                                                       \
   template <GMOCK_ACTION_TEMPLATE_ARGS_NAMES_>                                \
