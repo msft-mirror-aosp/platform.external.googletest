@@ -80,7 +80,7 @@ following notable projects:
 automated test-runner and Graphical User Interface with powerful features for
 Windows and Linux platforms.
 
-[Google Test UI](https://github.com/ospector/gtest-gbar) is test runner that
+[Google Test UI](https://github.com/ospector/gtest-gbar) is a test runner that
 runs your test binary, allows you to track its progress via a progress bar, and
 displays a list of test failures. Clicking on one shows failure text. Google
 Test UI is written in C#.
@@ -122,7 +122,7 @@ package:
     the build system that googletest is using internally and tests against.
     CMake is community-supported.
 
-*   a C++11-standard-compliant compiler
+*   A C++11-standard-compliant compiler
 
 ## Contributing change
 
