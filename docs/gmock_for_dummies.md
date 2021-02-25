@@ -1,9 +1,5 @@
 # gMock for Dummies {#GMockForDummies}
 
-<!-- GOOGLETEST_CM0013 DO NOT DELETE -->
-
-<!-- GOOGLETEST_CM0035 DO NOT DELETE -->
-
 ## What Is gMock?
 
 When you write a prototype or test, often it's not feasible or wise to rely on
@@ -12,9 +8,9 @@ object (so it can be used as one), but lets you specify at run time how it will
 be used and what it should do (which methods will be called? in which order? how
 many times? with what arguments? what will they return? etc).
 
-**Note:** It is easy to confuse the term *fake objects* with mock objects. Fakes
-and mocks actually mean very different things in the Test-Driven Development
-(TDD) community:
+It is easy to confuse the term *fake objects* with mock objects. Fakes and mocks
+actually mean very different things in the Test-Driven Development (TDD)
+community:
 
 *   **Fake** objects have working implementations, but usually take some
     shortcut (perhaps to make the operations less expensive), which makes them
@@ -55,9 +51,9 @@ them fast and reliable, using mocks manually in C++ is *hard*:
     one.
 
 In contrast, Java and Python programmers have some fine mock frameworks (jMock,
-EasyMock, [Mox](http://wtf/mox), etc), which automate the creation of mocks. As
-a result, mocking is a proven effective technique and widely adopted practice in
-those communities. Having the right tool absolutely makes the difference.
+EasyMock, etc), which automate the creation of mocks. As a result, mocking is a
+proven effective technique and widely adopted practice in those communities.
+Having the right tool absolutely makes the difference.
 
 gMock was built to help C++ programmers. It was inspired by jMock and EasyMock,
 but designed with C++'s specifics in mind. It is your friend if any of the
@@ -150,7 +146,7 @@ follow:
 
 *   Derive a class `MockTurtle` from `Turtle`.
 *   Take a *virtual* function of `Turtle` (while it's possible to
-    [mock non-virtual methods using templates](cook_book.md#MockingNonVirtualMethods),
+    [mock non-virtual methods using templates](gmock_cook_book.md#MockingNonVirtualMethods),
     it's much more involved).
 *   In the `public:` section of the child class, write `MOCK_METHOD();`
 *   Now comes the fun part: you take the function signature, cut-and-paste it
@@ -207,8 +203,6 @@ changes in `Foo` much more easily. While this is more work initially, carefully
 choosing the adaptor interface can make your code easier to write and more
 readable (a net win in the long run), as you can choose `FooAdaptor` to fit your
 specific domain much better than `Foo` does.
-
-<!-- GOOGLETEST_CM0029 DO NOT DELETE -->
 
 ## Using Mocks in Tests
 
@@ -341,7 +335,7 @@ will return 100 the first time, 150 the second time, and then 200 every time.
 Some people like to call this style of syntax a Domain-Specific Language (DSL).
 
 **Note:** Why do we use a macro to do this? Well it serves two purposes: first
-it makes expectations easily identifiable (either by `gsearch` or by a human
+it makes expectations easily identifiable (either by `grep` or by a human
 reader), and second it allows gMock to include the source file location of a
 failed expectation in messages, making debugging easier.
 
@@ -376,8 +370,8 @@ convenient way of saying "any value".
 In the above examples, `100` and `50` are also matchers; implicitly, they are
 the same as `Eq(100)` and `Eq(50)`, which specify that the argument must be
 equal (using `operator==`) to the matcher argument. There are many
-[built-in matchers](cheat_sheet.md#MatcherList) for common types (as well as
-[custom matchers](cook_book.md#NewMatchers)); for example:
+[built-in matchers](gmock_cheat_sheet.md#MatcherList) for common types (as well
+as [custom matchers](gmock_cook_book.md#NewMatchers)); for example:
 
 ```cpp
 using ::testing::Ge;
@@ -399,7 +393,7 @@ EXPECT_CALL(turtle, GoTo);
 This works for all non-overloaded methods; if a method is overloaded, you need
 to help gMock resolve which overload is expected by specifying the number of
 arguments and possibly also the
-[types of the arguments](cook_book.md#SelectOverload).
+[types of the arguments](gmock_cook_book.md#SelectOverload).
 
 ### Cardinalities: How Many Times Will It Be Called?
 
@@ -416,7 +410,7 @@ called.
 
 We've seen `AtLeast(n)` as an example of fuzzy cardinalities earlier. For the
 list of built-in cardinalities you can use, see
-[here](cheat_sheet.md#CardinalityList).
+[here](gmock_cheat_sheet.md#CardinalityList).
 
 The `Times()` clause can be omitted. **If you omit `Times()`, gMock will infer
 the cardinality for you.** The rules are easy to remember:
@@ -485,7 +479,7 @@ the *default* action for the function every time (unless, of course, you have a
 
 What can we do inside `WillOnce()` besides `Return()`? You can return a
 reference using `ReturnRef(*variable*)`, or invoke a pre-defined function, among
-[others](cook_book.md#using-actions).
+[others](gmock_cook_book.md#using-actions).
 
 **Important note:** The `EXPECT_CALL()` statement evaluates the action clause
 only once, even though the action may be performed many times. Therefore you
@@ -505,7 +499,7 @@ always return 100 as `n++` is only evaluated once. Similarly, `Return(new Foo)`
 will create a new `Foo` object when the `EXPECT_CALL()` is executed, and will
 return the same pointer every time. If you want the side effect to happen every
 time, you need to define a custom action, which we'll teach in the
-[cook book](http://<!-- GOOGLETEST_CM0012 DO NOT DELETE -->).
+[cook book](gmock_cook_book.md).
 
 Time for another quiz! What do you think the following means?
 
@@ -563,7 +557,7 @@ overloaded). This makes any calls to the method expected. This is not necessary
 for methods that are not mentioned at all (these are "uninteresting"), but is
 useful for methods that have some expectations, but for which other calls are
 ok. See
-[Understanding Uninteresting vs Unexpected Calls](cook_book.md#uninteresting-vs-unexpected).
+[Understanding Uninteresting vs Unexpected Calls](gmock_cook_book.md#uninteresting-vs-unexpected).
 
 ### Ordered vs Unordered Calls {#OrderedCalls}
 
@@ -600,7 +594,7 @@ order as written. If a call is made out-of-order, it will be an error.
 
 (What if you care about the relative order of some of the calls, but not all of
 them? Can you specify an arbitrary partial order? The answer is ... yes! The
-details can be found [here](cook_book.md#OrderedCalls).)
+details can be found [here](gmock_cook_book.md#OrderedCalls).)
 
 ### All Expectations Are Sticky (Unless Said Otherwise) {#StickyExpectations}
 
@@ -699,4 +693,4 @@ For example, in some tests we may not care about how many times `GetX()` and
 In gMock, if you are not interested in a method, just don't say anything about
 it. If a call to this method occurs, you'll see a warning in the test output,
 but it won't be a failure. This is called "naggy" behavior; to change, see
-[The Nice, the Strict, and the Naggy](cook_book.md#NiceStrictNaggy).
+[The Nice, the Strict, and the Naggy](gmock_cook_book.md#NiceStrictNaggy).
