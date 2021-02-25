@@ -1,9 +1,5 @@
 # Advanced googletest Topics
 
-<!-- GOOGLETEST_CM0016 DO NOT DELETE -->
-
-<!-- GOOGLETEST_CM0035 DO NOT DELETE -->
-
 ## Introduction
 
 Now that you have read the [googletest Primer](primer.md) and learned how to
@@ -111,7 +107,7 @@ assertion* to get the function arguments printed for free:
 | `ASSERT_PRED2(pred2, val1, val2)` | `EXPECT_PRED2(pred2, val1, val2)` | `pred2(val1, val2)` is true |
 | `...`                             | `...`                             | `...`                       |
 
-<!-- mdformat on-->
+<!-- mdformat on -->
 In the above, `predn` is an `n`-ary predicate function or functor, where `val1`,
 `val2`, ..., and `valn` are its arguments. The assertion succeeds if the
 predicate returns `true` when applied to the given arguments, and fails
@@ -153,7 +149,7 @@ c is 10
 >
 > 1.  If you see a compiler error "no matching function to call" when using
 >     `ASSERT_PRED*` or `EXPECT_PRED*`, please see
->     [this](faq.md#the-compiler-complains-no-matching-function-to-call-when-i-use-assert-pred-how-do-i-fix-it)
+>     [this](faq.md#the-compiler-complains-no-matching-function-to-call-when-i-use-assert_pred-how-do-i-fix-it)
 >     for how to resolve it.
 
 #### Using a Function That Returns an AssertionResult
@@ -340,7 +336,7 @@ want to learn more, see
 | `ASSERT_FLOAT_EQ(val1, val2);`  | `EXPECT_FLOAT_EQ(val1, val2);`  | the two `float` values are almost equal  |
 | `ASSERT_DOUBLE_EQ(val1, val2);` | `EXPECT_DOUBLE_EQ(val1, val2);` | the two `double` values are almost equal |
 
-<!-- mdformat on-->
+<!-- mdformat on -->
 
 By "almost equal" we mean the values are within 4 ULP's from each other.
 
@@ -352,7 +348,7 @@ The following assertions allow you to choose the acceptable error bound:
 | ------------------------------------- | ------------------------------------- | -------------------------------------------------------------------------------- |
 | `ASSERT_NEAR(val1, val2, abs_error);` | `EXPECT_NEAR(val1, val2, abs_error);` | the difference between `val1` and `val2` doesn't exceed the given absolute error |
 
-<!-- mdformat on-->
+<!-- mdformat on -->
 
 #### Floating-Point Predicate-Format Functions
 
@@ -371,8 +367,8 @@ Verifies that `val1` is less than, or almost equal to, `val2`. You can replace
 
 ### Asserting Using gMock Matchers
 
-[gMock](../../googlemock) comes with
-[a library of matchers](../../googlemock/docs/cheat_sheet.md#MatcherList) for
+[gMock](gmock_for_dummies.md) comes with
+[a library of matchers](gmock_cheat_sheet.md#MatcherList) for
 validating arguments passed to mock objects. A gMock *matcher* is basically a
 predicate that knows how to describe itself. It can be used in these assertion
 macros:
@@ -383,7 +379,7 @@ macros:
 | ------------------------------ | ------------------------------ | --------------------- |
 | `ASSERT_THAT(value, matcher);` | `EXPECT_THAT(value, matcher);` | value matches matcher |
 
-<!-- mdformat on-->
+<!-- mdformat on -->
 
 For example, `StartsWith(prefix)` is a matcher that matches a string starting
 with `prefix`, and you can write:
@@ -396,13 +392,13 @@ using ::testing::StartsWith;
 ```
 
 Read this
-[recipe](../../googlemock/docs/cook_book.md#using-matchers-in-googletest-assertions)
+[recipe](gmock_cook_book.md#using-matchers-in-googletest-assertions)
 in the gMock Cookbook for more details.
 
 gMock has a rich set of matchers. You can do many things googletest cannot do
 alone with them. For a list of matchers gMock provides, read
-[this](../../googlemock/docs/cook_book.md##using-matchers). It's easy to write
-your [own matchers](../../googlemock/docs/cook_book.md#NewMatchers) too.
+[this](gmock_cook_book.md##using-matchers). It's easy to write
+your [own matchers](gmock_cook_book.md#NewMatchers) too.
 
 gMock is bundled with googletest, so you don't need to add any build dependency
 in order to take advantage of this. Just include `"gmock/gmock.h"`
@@ -414,7 +410,7 @@ and you're ready to go.
 you haven't.)
 
 You can use the gMock
-[string matchers](../../googlemock/docs/cheat_sheet.md#string-matchers) with
+[string matchers](gmock_cheat_sheet.md#string-matchers) with
 `EXPECT_THAT()` or `ASSERT_THAT()` to do more string comparison tricks
 (sub-string, prefix, suffix, regular expression, and etc). For example,
 
@@ -915,7 +911,7 @@ handlers registered with `pthread_atfork(3)`.
 
 Note: If you want to put a series of test assertions in a subroutine to check
 for a complex condition, consider using
-[a custom GMock matcher](../../googlemock/docs/cook_book.md#NewMatchers)
+[a custom GMock matcher](gmock_cook_book.md#NewMatchers)
 instead. This lets you provide a more readable error message in case of failure
 and avoid all of the issues described below.
 
@@ -1369,7 +1365,7 @@ namespace:
 | `Bool()`                                                                                  | Yields sequence `{false, true}`.                                                                                  |
 | `Combine(g1, g2, ..., gN)`                                                                | Yields all combinations (Cartesian product) as std\:\:tuples of the values generated by the `N` generators.       |
 
-<!-- mdformat on-->
+<!-- mdformat on -->
 
 For more details, see the comments at the definitions of these functions.
 
@@ -1432,8 +1428,8 @@ given test suite, whether their definitions come before or *after* the
 
 You can see [sample7_unittest.cc] and [sample8_unittest.cc] for more examples.
 
-[sample7_unittest.cc]: ../samples/sample7_unittest.cc "Parameterized Test example"
-[sample8_unittest.cc]: ../samples/sample8_unittest.cc "Parameterized Test example with multiple parameters"
+[sample7_unittest.cc]: ../googletest/samples/sample7_unittest.cc "Parameterized Test example"
+[sample8_unittest.cc]: ../googletest/samples/sample8_unittest.cc "Parameterized Test example with multiple parameters"
 
 ### Creating Value-Parameterized Abstract Tests
 
@@ -1583,7 +1579,7 @@ TYPED_TEST(FooTest, HasPropertyA) { ... }
 
 You can see [sample6_unittest.cc] for a complete example.
 
-[sample6_unittest.cc]: ../samples/sample6_unittest.cc "Typed Test example"
+[sample6_unittest.cc]: ../googletest/samples/sample6_unittest.cc "Typed Test example"
 
 ## Type-Parameterized Tests
 
@@ -2026,7 +2022,7 @@ You can do so by adding one line:
 Now, sit back and enjoy a completely different output from your tests. For more
 details, see [sample9_unittest.cc].
 
-[sample9_unittest.cc]: ../samples/sample9_unittest.cc "Event listener example"
+[sample9_unittest.cc]: ../googletest/samples/sample9_unittest.cc "Event listener example"
 
 You may append more than one listener to the list. When an `On*Start()` or
 `OnTestPartResult()` event is fired, the listeners will receive it in the order
@@ -2053,7 +2049,7 @@ by the former.
 
 See [sample10_unittest.cc] for an example of a failure-raising listener.
 
-[sample10_unittest.cc]: ../samples/sample10_unittest.cc "Failure-raising listener example"
+[sample10_unittest.cc]: ../googletest/samples/sample10_unittest.cc "Failure-raising listener example"
 
 ## Running Test Programs: Advanced Options
 
@@ -2159,9 +2155,9 @@ NOTE: This feature should only be used for temporary pain-relief. You still have
 to fix the disabled tests at a later date. As a reminder, googletest will print
 a banner warning you if a test program contains any disabled tests.
 
-TIP: You can easily count the number of disabled tests you have using `gsearch`
-and/or `grep`. This number can be used as a metric for improving your test
-quality.
+TIP: You can easily count the number of disabled tests you have using
+`grep`. This number can be used as a metric for
+improving your test quality.
 
 #### Temporarily Enabling Disabled Tests
 
@@ -2228,38 +2224,25 @@ random seed and re-shuffle the tests in each iteration.
 googletest can use colors in its terminal output to make it easier to spot the
 important information:
 
-<code>
-...<br/>
-  <font color="green">[----------]</font><font color="black"> 1 test from
-  FooTest</font><br/>
-  <font color="green">[ RUN &nbsp; &nbsp; &nbsp;]</font><font color="black">
-  FooTest.DoesAbc</font><br/>
-  <font color="green">[ &nbsp; &nbsp; &nbsp; OK ]</font><font color="black">
-  FooTest.DoesAbc </font><br/>
-  <font color="green">[----------]</font><font color="black">
-  2 tests from BarTest</font><br/>
-  <font color="green">[ RUN &nbsp; &nbsp; &nbsp;]</font><font color="black">
-  BarTest.HasXyzProperty </font><br/>
-  <font color="green">[ &nbsp; &nbsp; &nbsp; OK ]</font><font color="black">
-  BarTest.HasXyzProperty</font><br/>
-  <font color="green">[ RUN &nbsp; &nbsp; &nbsp;]</font><font color="black">
-  BarTest.ReturnsTrueOnSuccess ... some error messages ...</font><br/>
-  <font color="red">[ &nbsp; FAILED ]</font><font color="black">
-  BarTest.ReturnsTrueOnSuccess ...</font><br/>
-  <font color="green">[==========]</font><font color="black">
-  30 tests from 14 test suites ran.</font><br/>
-  <font color="green">[ &nbsp; PASSED ]</font><font color="black">
-  28 tests.</font><br/>
-  <font color="red">[ &nbsp; FAILED ]</font><font color="black">
-  2 tests, listed below:</font><br/>
-  <font color="red">[ &nbsp; FAILED ]</font><font color="black">
-  BarTest.ReturnsTrueOnSuccess</font><br/>
-  <font color="red">[ &nbsp; FAILED ]</font><font color="black">
-  AnotherTest.DoesXyz<br/>
-<br/>
-  2 FAILED TESTS
-  </font>
-</code>
+<pre>...
+<font color="green">[----------]</font> 1 test from FooTest
+<font color="green">[ RUN      ]</font> FooTest.DoesAbc
+<font color="green">[       OK ]</font> FooTest.DoesAbc
+<font color="green">[----------]</font> 2 tests from BarTest
+<font color="green">[ RUN      ]</font> BarTest.HasXyzProperty
+<font color="green">[       OK ]</font> BarTest.HasXyzProperty
+<font color="green">[ RUN      ]</font> BarTest.ReturnsTrueOnSuccess
+... some error messages ...
+<font color="red">[   FAILED ]</font> BarTest.ReturnsTrueOnSuccess
+...
+<font color="green">[==========]</font> 30 tests from 14 test suites ran.
+<font color="green">[   PASSED ]</font> 28 tests.
+<font color="red">[   FAILED ]</font> 2 tests, listed below:
+<font color="red">[   FAILED ]</font> BarTest.ReturnsTrueOnSuccess
+<font color="red">[   FAILED ]</font> AnotherTest.DoesXyz
+
+ 2 FAILED TESTS
+</pre>
 
 You can set the `GTEST_COLOR` environment variable or the `--gtest_color`
 command line flag to `yes`, `no`, or `auto` (the default) to enable colors,
@@ -2609,3 +2592,32 @@ to be handled by the debugger, such that you can examine the call stack when an
 exception is thrown. To achieve that, set the `GTEST_CATCH_EXCEPTIONS`
 environment variable to `0`, or use the `--gtest_catch_exceptions=0` flag when
 running the tests.
+
+### Sanitizer Integration
+
+The
+[Undefined Behavior Sanitizer](https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html),
+[Address Sanitizer](https://github.com/google/sanitizers/wiki/AddressSanitizer),
+and
+[Thread Sanitizer](https://github.com/google/sanitizers/wiki/ThreadSanitizerCppManual)
+all provide weak functions that you can override to trigger explicit failures
+when they detect sanitizer errors, such as creating a reference from `nullptr`.
+To override these functions, place definitions for them in a source file that
+you compile as part of your main binary:
+
+```
+extern "C" {
+void __ubsan_on_report() {
+  FAIL() << "Encountered an undefined behavior sanitizer error";
+}
+void __asan_on_error() {
+  FAIL() << "Encountered an address sanitizer error";
+}
+void __tsan_on_report() {
+  FAIL() << "Encountered a thread sanitizer error";
+}
+}  // extern "C"
+```
+
+After compiling your project with one of the sanitizers enabled, if a particular
+test triggers a sanitizer error, googletest will report that it failed.
