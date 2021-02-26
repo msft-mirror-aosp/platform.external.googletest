@@ -3187,8 +3187,6 @@ TEST_F(DisabledTestsTest, DISABLED_TestShouldNotRun_2) {
 
 // Tests that disabled typed tests aren't run.
 
-#if GTEST_HAS_TYPED_TEST
-
 template <typename T>
 class TypedTest : public Test {
 };
@@ -3210,11 +3208,7 @@ TYPED_TEST(DISABLED_TypedTest, ShouldNotRun) {
   FAIL() << "Unexpected failure: Disabled typed test should not run.";
 }
 
-#endif  // GTEST_HAS_TYPED_TEST
-
 // Tests that disabled type-parameterized tests aren't run.
-
-#if GTEST_HAS_TYPED_TEST_P
 
 template <typename T>
 class TypedTestP : public Test {
@@ -3245,8 +3239,6 @@ TYPED_TEST_P(DISABLED_TypedTestP, ShouldNotRun) {
 REGISTER_TYPED_TEST_SUITE_P(DISABLED_TypedTestP, ShouldNotRun);
 
 INSTANTIATE_TYPED_TEST_SUITE_P(My, DISABLED_TypedTestP, NumericTypes);
-
-#endif  // GTEST_HAS_TYPED_TEST_P
 
 // Tests that assertion macros evaluate their arguments exactly once.
 
@@ -3355,7 +3347,11 @@ TEST_F(SingleEvaluationTest, OtherCases) {
 
 #if GTEST_HAS_RTTI
 
+#ifdef _MSC_VER
+#define ERROR_DESC "class std::runtime_error"
+#else
 #define ERROR_DESC "std::runtime_error"
+#endif
 
 #else  // GTEST_HAS_RTTI
 
@@ -7551,7 +7547,8 @@ TEST(FlatTuple, Basic) {
   EXPECT_EQ(0.0, tuple.Get<1>());
   EXPECT_EQ(nullptr, tuple.Get<2>());
 
-  tuple = FlatTuple<int, double, const char*>(7, 3.2, "Foo");
+  tuple = FlatTuple<int, double, const char*>(
+      testing::internal::FlatTupleConstructTag{}, 7, 3.2, "Foo");
   EXPECT_EQ(7, tuple.Get<0>());
   EXPECT_EQ(3.2, tuple.Get<1>());
   EXPECT_EQ(std::string("Foo"), tuple.Get<2>());
@@ -7569,7 +7566,8 @@ std::string AddIntToString(int i, const std::string& s) {
 TEST(FlatTuple, Apply) {
   using testing::internal::FlatTuple;
 
-  FlatTuple<int, std::string> tuple{5, "Hello"};
+  FlatTuple<int, std::string> tuple{testing::internal::FlatTupleConstructTag{},
+                                    5, "Hello"};
 
   // Lambda.
   EXPECT_TRUE(tuple.Apply([](int i, const std::string& s) -> bool {
@@ -7643,7 +7641,8 @@ TEST(FlatTuple, ConstructorCalls) {
   ConstructionCounting::Reset();
   {
     ConstructionCounting elem;
-    FlatTuple<ConstructionCounting> tuple{elem};
+    FlatTuple<ConstructionCounting> tuple{
+        testing::internal::FlatTupleConstructTag{}, elem};
   }
   EXPECT_EQ(ConstructionCounting::default_ctor_calls, 1);
   EXPECT_EQ(ConstructionCounting::dtor_calls, 2);
@@ -7654,7 +7653,10 @@ TEST(FlatTuple, ConstructorCalls) {
 
   // Move construction.
   ConstructionCounting::Reset();
-  { FlatTuple<ConstructionCounting> tuple{ConstructionCounting{}}; }
+  {
+    FlatTuple<ConstructionCounting> tuple{
+        testing::internal::FlatTupleConstructTag{}, ConstructionCounting{}};
+  }
   EXPECT_EQ(ConstructionCounting::default_ctor_calls, 1);
   EXPECT_EQ(ConstructionCounting::dtor_calls, 2);
   EXPECT_EQ(ConstructionCounting::copy_ctor_calls, 0);
