@@ -566,11 +566,11 @@ struct SuiteApiResolver : T {
 //
 // Arguments:
 //
-//   test_suite_name:   name of the test suite
+//   test_suite_name:  name of the test suite
 //   name:             name of the test
-//   type_param        the name of the test's type parameter, or NULL if
+//   type_param:       the name of the test's type parameter, or NULL if
 //                     this is not a typed or a type-parameterized test.
-//   value_param       text representation of the test's value parameter,
+//   value_param:      text representation of the test's value parameter,
 //                     or NULL if this is not a type-parameterized test.
 //   code_location:    code location where the test is defined
 //   fixture_class_id: ID of the test fixture class
@@ -589,8 +589,6 @@ GTEST_API_ TestInfo* MakeAndRegisterTestInfo(
 // past the prefix and returns true; otherwise leaves *pstr unchanged
 // and returns false.  None of pstr, *pstr, and prefix can be NULL.
 GTEST_API_ bool SkipPrefix(const char* prefix, const char** pstr);
-
-#if GTEST_HAS_TYPED_TEST || GTEST_HAS_TYPED_TEST_P
 
 GTEST_DISABLE_MSC_WARNINGS_PUSH_(4251 \
 /* class A needs to have dll-interface to be used by clients of class B */)
@@ -822,8 +820,6 @@ class TypeParameterizedTestSuite<Fixture, internal::None, Types> {
     return true;
   }
 };
-
-#endif  // GTEST_HAS_TYPED_TEST || GTEST_HAS_TYPED_TEST_P
 
 // Returns the current OS stack trace as an std::string.
 //
@@ -1285,14 +1281,9 @@ class FlatTuple
 
  public:
   FlatTuple() = default;
-  template <typename... Args,
-            typename = typename std::enable_if<
-                !std::is_same<void(FlatTuple), void(typename std::decay<
-                                                    Args>::type...)>::value &&
-                (sizeof...(T) >= 1)>::type>
-  explicit FlatTuple(Args&&... args)
-      : FlatTuple::FlatTupleBase(FlatTupleConstructTag{},
-                                 std::forward<Args>(args)...) {}
+  template <typename... Args>
+  explicit FlatTuple(FlatTupleConstructTag tag, Args&&... args)
+      : FlatTuple::FlatTupleBase(tag, std::forward<Args>(args)...) {}
 
   using FlatTuple::FlatTupleBase::Apply;
   using FlatTuple::FlatTupleBase::Get;
