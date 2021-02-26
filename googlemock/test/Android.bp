@@ -45,7 +45,6 @@ cc_test {
         // Test is disabled because Android doesn't build gmock with exceptions.
         //"gmock_ex_test.cc",
 
-        "gmock-generated-actions_test.cc",
         "gmock-internal-utils_test.cc",
         "gmock-matchers_test.cc",
         "gmock-more-actions_test.cc",
