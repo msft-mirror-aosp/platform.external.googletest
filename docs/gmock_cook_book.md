@@ -1,16 +1,13 @@
 # gMock Cookbook
 
-<!-- GOOGLETEST_CM0012 DO NOT DELETE -->
-
 You can find recipes for using gMock here. If you haven't yet, please read
-[the dummy guide](for_dummies.md) first to make sure you understand the basics.
+[the dummy guide](gmock_for_dummies.md) first to make sure you understand the
+basics.
 
 **Note:** gMock lives in the `testing` name space. For readability, it is
 recommended to write `using ::testing::Foo;` once in your file before using the
 name `Foo` defined by gMock. We omit such `using` statements in this section for
 brevity, but you should do it in your own code.
-
-<!-- GOOGLETEST_CM0035 DO NOT DELETE -->
 
 ## Creating Mock Classes
 
@@ -37,6 +34,9 @@ generated method:
     `noexcept` method.
 *   **`Calltype(...)`** - Sets the call type for the method (e.g. to
     `STDMETHODCALLTYPE`), useful in Windows.
+*   **`ref(...)`** - Marks the method with the reference qualification
+    specified. Required if overriding a method that has reference
+    qualifications. Eg `ref(&)` or `ref(&&)`.
 
 ### Dealing with unprotected commas
 
@@ -179,8 +179,7 @@ class MockStack : public StackInterface<Elem> {
 
 ### Mocking Non-virtual Methods {#MockingNonVirtualMethods}
 
-gMock can mock non-virtual functions to be used in Hi-perf dependency
-injection.<!-- GOOGLETEST_CM0017 DO NOT DELETE -->
+gMock can mock non-virtual functions to be used in Hi-perf dependency injection.
 
 In this case, instead of sharing a common base class with the real class, your
 mock class will be *unrelated* to the real class, but contain methods with the
@@ -301,44 +300,86 @@ The macros in the `MOCK_METHODn` family differ from `MOCK_METHOD`:
 
 Old macros and their new equivalents:
 
-<a name="table99"></a>
-<table border="1" cellspacing="0" cellpadding="1">
-<tr> <th colspan=2> Simple </th></tr>
-<tr> <td> Old </td> <td> `MOCK_METHOD1(Foo, bool(int))` </td> </tr>
-<tr> <td> New </td> <td> `MOCK_METHOD(bool, Foo, (int))` </td> </tr>
+<table>
+  <tr><th colspan=2>Simple</th></tr>
+  <tr>
+    <td>Old</td>
+    <td><code>MOCK_METHOD1(Foo, bool(int))</code></td>
+  </tr>
+  <tr>
+    <td>New</td>
+    <td><code>MOCK_METHOD(bool, Foo, (int))</code></td>
+  </tr>
 
-<tr> <th colspan=2> Const Method </th></tr> <tr> <td> Old </td> <td>
-`MOCK_CONST_METHOD1(Foo, bool(int))` </td> </tr> <tr> <td> New </td> <td>
-`MOCK_METHOD(bool, Foo, (int), (const))` </td> </tr>
+  <tr><th colspan=2>Const Method</th></tr>
+  <tr>
+    <td>Old</td>
+    <td><code>MOCK_CONST_METHOD1(Foo, bool(int))</code></td>
+  </tr>
+  <tr>
+    <td>New</td>
+    <td><code>MOCK_METHOD(bool, Foo, (int), (const))</code></td>
+  </tr>
 
-<tr> <th colspan=2> Method in a Class Template </th></tr> <tr> <td> Old </td>
-<td> `MOCK_METHOD1_T(Foo, bool(int))` </td> </tr> <tr> <td> New </td> <td>
-`MOCK_METHOD(bool, Foo, (int))` </td> </tr>
+  <tr><th colspan=2>Method in a Class Template</th></tr>
+  <tr>
+    <td>Old</td>
+    <td><code>MOCK_METHOD1_T(Foo, bool(int))</code></td>
+  </tr>
+  <tr>
+    <td>New</td>
+    <td><code>MOCK_METHOD(bool, Foo, (int))</code></td>
+  </tr>
 
-<tr> <th colspan=2> Const Method in a Class Template </th></tr> <tr> <td> Old
-</td> <td> `MOCK_CONST_METHOD1_T(Foo, bool(int))` </td> </tr> <tr> <td> New
-</td> <td> `MOCK_METHOD(bool, Foo, (int), (const))` </td> </tr>
+  <tr><th colspan=2>Const Method in a Class Template</th></tr>
+  <tr>
+    <td>Old</td>
+    <td><code>MOCK_CONST_METHOD1_T(Foo, bool(int))</code></td>
+  </tr>
+  <tr>
+    <td>New</td>
+    <td><code>MOCK_METHOD(bool, Foo, (int), (const))</code></td>
+  </tr>
 
-<tr> <th colspan=2> Method with Call Type </th></tr> <tr> <td> Old </td> <td>
-`MOCK_METHOD1_WITH_CALLTYPE(STDMETHODCALLTYPE, Foo, bool(int))` </td> </tr> <tr>
-<td> New </td> <td> `MOCK_METHOD(bool, Foo, (int),
-(Calltype(STDMETHODCALLTYPE)))` </td> </tr>
+  <tr><th colspan=2>Method with Call Type</th></tr>
+  <tr>
+    <td>Old</td>
+    <td><code>MOCK_METHOD1_WITH_CALLTYPE(STDMETHODCALLTYPE, Foo, bool(int))</code></td>
+  </tr>
+  <tr>
+    <td>New</td>
+    <td><code>MOCK_METHOD(bool, Foo, (int), (Calltype(STDMETHODCALLTYPE)))</code></td>
+  </tr>
 
-<tr> <th colspan=2> Const Method with Call Type </th></tr> <tr> <td> Old</td>
-<td> `MOCK_CONST_METHOD1_WITH_CALLTYPE(STDMETHODCALLTYPE, Foo, bool(int))` </td>
-</tr> <tr> <td> New </td> <td> `MOCK_METHOD(bool, Foo, (int), (const,
-Calltype(STDMETHODCALLTYPE)))` </td> </tr>
+  <tr><th colspan=2>Const Method with Call Type</th></tr>
+  <tr>
+    <td>Old</td>
+    <td><code>MOCK_CONST_METHOD1_WITH_CALLTYPE(STDMETHODCALLTYPE, Foo, bool(int))</code></td>
+  </tr>
+  <tr>
+    <td>New</td>
+    <td><code>MOCK_METHOD(bool, Foo, (int), (const, Calltype(STDMETHODCALLTYPE)))</code></td>
+  </tr>
 
-<tr> <th colspan=2> Method with Call Type in a Class Template </th></tr> <tr>
-<td> Old </td> <td> `MOCK_METHOD1_T_WITH_CALLTYPE(STDMETHODCALLTYPE, Foo,
-bool(int))` </td> </tr> <tr> <td> New </td> <td> `MOCK_METHOD(bool, Foo, (int),
-(Calltype(STDMETHODCALLTYPE)))` </td> </tr>
+  <tr><th colspan=2>Method with Call Type in a Class Template</th></tr>
+  <tr>
+    <td>Old</td>
+    <td><code>MOCK_METHOD1_T_WITH_CALLTYPE(STDMETHODCALLTYPE, Foo, bool(int))</code></td>
+  </tr>
+  <tr>
+    <td>New</td>
+    <td><code>MOCK_METHOD(bool, Foo, (int), (Calltype(STDMETHODCALLTYPE)))</code></td>
+  </tr>
 
-<tr> <th colspan=2> Const Method with Call Type in a Class Template </th></tr>
-<tr> <td> Old </td> <td> `MOCK_CONST_METHOD1_T_WITH_CALLTYPE(STDMETHODCALLTYPE,
-Foo, bool(int))` </td> </tr> <tr> <td> New </td> <td> `MOCK_METHOD(bool, Foo,
-(int), (const, Calltype(STDMETHODCALLTYPE)))` </td> </tr>
-
+  <tr><th colspan=2>Const Method with Call Type in a Class Template</th></tr>
+  <tr>
+    <td>Old</td>
+    <td><code>MOCK_CONST_METHOD1_T_WITH_CALLTYPE(STDMETHODCALLTYPE, Foo, bool(int))</code></td>
+  </tr>
+  <tr>
+    <td>New</td>
+    <td><code>MOCK_METHOD(bool, Foo, (int), (const, Calltype(STDMETHODCALLTYPE)))</code></td>
+  </tr>
 </table>
 
 ### The Nice, the Strict, and the Naggy {#NiceStrictNaggy}
@@ -426,16 +467,6 @@ limitations):
 2.  `NiceMock<MockFoo>` and `StrictMock<MockFoo>` may not work correctly if the
     destructor of `MockFoo` is not virtual. We would like to fix this, but it
     requires cleaning up existing tests.
-3.  During the constructor or destructor of `MockFoo`, the mock object is *not*
-    nice or strict. This may cause surprises if the constructor or destructor
-    calls a mock method on `this` object. (This behavior, however, is consistent
-    with C++'s general rule: if a constructor or destructor calls a virtual
-    method of `this` object, that method is treated as non-virtual. In other
-    words, to the base class's constructor or destructor, `this` object behaves
-    like an instance of the base class, not the derived class. This rule is
-    required for safety. Otherwise a base constructor may use members of a
-    derived class before they are initialized, or a base destructor may use
-    members of a derived class after they have been destroyed.)
 
 Finally, you should be **very cautious** about when to use naggy or strict
 mocks, as they tend to make tests more brittle and harder to maintain. When you
@@ -517,7 +548,7 @@ argument matchers:
 
 ```cpp
 ON_CALL(factory, DoMakeTurtle)
-    .WillByDefault(MakeMockTurtle());
+    .WillByDefault(Return(MakeMockTurtle()));
 ```
 
 ### Alternative to Mocking Concrete Classes
@@ -836,7 +867,6 @@ A frequently used matcher is `_`, which matches anything:
 ```cpp
   EXPECT_CALL(foo, DoThat(_, NotNull()));
 ```
-<!-- GOOGLETEST_CM0022 DO NOT DELETE -->
 
 ### Combining Matchers {#CombiningMatchers}
 
@@ -1148,11 +1178,11 @@ Hamcrest project, which adds `assertThat()` to JUnit.
 
 ### Using Predicates as Matchers
 
-gMock provides a [built-in set](cheat_sheet.md#MatcherList) of matchers. In case
-you find them lacking, you can use an arbitrary unary predicate function or
-functor as a matcher - as long as the predicate accepts a value of the type you
-want. You do this by wrapping the predicate inside the `Truly()` function, for
-example:
+gMock provides a [built-in set](gmock_cheat_sheet.md#MatcherList) of matchers.
+In case you find them lacking, you can use an arbitrary unary predicate function
+or functor as a matcher - as long as the predicate accepts a value of the type
+you want. You do this by wrapping the predicate inside the `Truly()` function,
+for example:
 
 ```cpp
 using ::testing::Truly;
@@ -1166,8 +1196,6 @@ int IsEven(int n) { return (n % 2) == 0 ? 1 : 0; }
 Note that the predicate function / functor doesn't have to return `bool`. It
 works as long as the return value can be used as the condition in in statement
 `if (condition) ...`.
-
-<!-- GOOGLETEST_CM0023 DO NOT DELETE -->
 
 ### Matching Arguments that Are Not Copyable
 
@@ -1230,9 +1258,11 @@ For example:
 <!-- mdformat on -->
 
 Note that in `Property(&Foo::baz, ...)`, method `baz()` must take no argument
-and be declared as `const`.
+and be declared as `const`. Don't use `Property()` against member functions that
+you do not own, because taking addresses of functions is fragile and generally
+not part of the contract of the function.
 
-BTW, `Field()` and `Property()` can also match plain pointers to objects. For
+`Field()` and `Property()` can also match plain pointers to objects. For
 instance,
 
 ```cpp
@@ -1321,32 +1351,30 @@ how you can define a matcher to do it:
 
 ```cpp
 using ::testing::Matcher;
-using ::testing::MatcherInterface;
-using ::testing::MatchResultListener;
 
-class BarPlusBazEqMatcher : public MatcherInterface<const Foo&> {
+class BarPlusBazEqMatcher {
  public:
   explicit BarPlusBazEqMatcher(int expected_sum)
       : expected_sum_(expected_sum) {}
 
   bool MatchAndExplain(const Foo& foo,
-                       MatchResultListener* /* listener */) const override {
+                       std::ostream* /* listener */) const {
     return (foo.bar() + foo.baz()) == expected_sum_;
   }
 
-  void DescribeTo(std::ostream* os) const override {
-    *os << "bar() + baz() equals " << expected_sum_;
+  void DescribeTo(std::ostream& os) const {
+    os << "bar() + baz() equals " << expected_sum_;
   }
 
-  void DescribeNegationTo(std::ostream* os) const override {
-    *os << "bar() + baz() does not equal " << expected_sum_;
+  void DescribeNegationTo(std::ostream& os) const {
+    os << "bar() + baz() does not equal " << expected_sum_;
   }
  private:
   const int expected_sum_;
 };
 
 Matcher<const Foo&> BarPlusBazEq(int expected_sum) {
-  return MakeMatcher(new BarPlusBazEqMatcher(expected_sum));
+  return BarPlusBazEqMatcher(expected_sum);
 }
 
 ...
@@ -1485,8 +1513,6 @@ mock object and gMock.
 ## Setting Expectations
 
 ### Knowing When to Expect {#UseOnCall}
-
-<!-- GOOGLETEST_CM0018 DO NOT DELETE -->
 
 **`ON_CALL`** is likely the *single most under-utilized construct* in gMock.
 
@@ -1717,7 +1743,7 @@ the test should reflect our real intent, instead of being overly constraining.
 
 gMock allows you to impose an arbitrary DAG (directed acyclic graph) on the
 calls. One way to express the DAG is to use the
-[After](cheat_sheet.md#AfterClause) clause of `EXPECT_CALL`.
+[After](gmock_cheat_sheet.md#AfterClause) clause of `EXPECT_CALL`.
 
 Another way is via the `InSequence()` clause (not the same as the `InSequence`
 class), which we borrowed from jMock 2. It's less flexible than `After()`, but
@@ -2178,8 +2204,6 @@ own precedence order distinct from the `ON_CALL` precedence order.
 
 If the built-in actions don't suit you, you can use an existing callable
 (function, `std::function`, method, functor, lambda) as an action.
-
-<!-- GOOGLETEST_CM0024 DO NOT DELETE -->
 
 ```cpp
 using ::testing::_; using ::testing::Invoke;
@@ -3075,7 +3099,7 @@ class MockFoo : public Foo {
   ...
   // Add the following two lines to the mock class.
   MOCK_METHOD(void, Die, ());
-  virtual ~MockFoo() { Die(); }
+  ~MockFoo() override { Die(); }
 };
 ```
 
@@ -3273,8 +3297,6 @@ written wrong. Case solved.
 If you are interested in the mock call trace but not the stack traces, you can
 combine `--gmock_verbose=info` with `--gtest_stack_trace_depth=0` on the test
 command line.
-
-<!-- GOOGLETEST_CM0025 DO NOT DELETE -->
 
 ### Running Tests in Emacs
 
@@ -3541,20 +3563,153 @@ MATCHER_P2(Blah, a, b, description_string_2) { ... }
 ```
 
 While it's tempting to always use the `MATCHER*` macros when defining a new
-matcher, you should also consider implementing `MatcherInterface` or using
-`MakePolymorphicMatcher()` instead (see the recipes that follow), especially if
-you need to use the matcher a lot. While these approaches require more work,
-they give you more control on the types of the value being matched and the
-matcher parameters, which in general leads to better compiler error messages
-that pay off in the long run. They also allow overloading matchers based on
-parameter types (as opposed to just based on the number of parameters).
+matcher, you should also consider implementing the matcher interface directly
+instead (see the recipes that follow), especially if you need to use the matcher
+a lot. While these approaches require more work, they give you more control on
+the types of the value being matched and the matcher parameters, which in
+general leads to better compiler error messages that pay off in the long run.
+They also allow overloading matchers based on parameter types (as opposed to
+just based on the number of parameters).
 
 ### Writing New Monomorphic Matchers
 
-A matcher of argument type `T` implements `::testing::MatcherInterface<T>` and
-does two things: it tests whether a value of type `T` matches the matcher, and
-can describe what kind of values it matches. The latter ability is used for
+A matcher of argument type `T` implements the matcher interface for `T` and does
+two things: it tests whether a value of type `T` matches the matcher, and can
+describe what kind of values it matches. The latter ability is used for
 generating readable error messages when expectations are violated.
+
+A matcher of `T` must declare a typedef like:
+
+```cpp
+using is_gtest_matcher = void;
+```
+
+and supports the following operations:
+
+```cpp
+// Match a value and optionally explain into an ostream.
+bool matched = matcher.MatchAndExplain(value, maybe_os);
+// where `value` is of type `T` and
+// `maybe_os` is of type `std::ostream*`, where it can be null if the caller
+// is not interested in there textual explanation.
+
+matcher.DescribeTo(os);
+matcher.DescribeNegationTo(os);
+// where `os` is of type `std::ostream*`.
+```
+
+If you need a custom matcher but `Truly()` is not a good option (for example,
+you may not be happy with the way `Truly(predicate)` describes itself, or you
+may want your matcher to be polymorphic as `Eq(value)` is), you can define a
+matcher to do whatever you want in two steps: first implement the matcher
+interface, and then define a factory function to create a matcher instance. The
+second step is not strictly needed but it makes the syntax of using the matcher
+nicer.
+
+For example, you can define a matcher to test whether an `int` is divisible by 7
+and then use it like this:
+
+```cpp
+using ::testing::Matcher;
+
+class DivisibleBy7Matcher {
+ public:
+  using is_gtest_matcher = void;
+
+  bool MatchAndExplain(int n, std::ostream*) const {
+    return (n % 7) == 0;
+  }
+
+  void DescribeTo(std::ostream* os) const {
+    *os << "is divisible by 7";
+  }
+
+  void DescribeNegationTo(std::ostream* os) const {
+    *os << "is not divisible by 7";
+  }
+};
+
+Matcher<int> DivisibleBy7() {
+  return DivisibleBy7Matcher();
+}
+
+...
+  EXPECT_CALL(foo, Bar(DivisibleBy7()));
+```
+
+You may improve the matcher message by streaming additional information to the
+`os` argument in `MatchAndExplain()`:
+
+```cpp
+class DivisibleBy7Matcher {
+ public:
+  bool MatchAndExplain(int n, std::ostream* os) const {
+    const int remainder = n % 7;
+    if (remainder != 0 && os != nullptr) {
+      *os << "the remainder is " << remainder;
+    }
+    return remainder == 0;
+  }
+  ...
+};
+```
+
+Then, `EXPECT_THAT(x, DivisibleBy7());` may generate a message like this:
+
+```shell
+Value of: x
+Expected: is divisible by 7
+  Actual: 23 (the remainder is 2)
+```
+
+Tip: for convenience, `MatchAndExplain()` can take a `MatchResultListener*`
+instead of `std::ostream*`.
+
+### Writing New Polymorphic Matchers
+
+Expanding what we learned above to *polymorphic* matchers is now just as simple
+as adding templates in the right place.
+
+```cpp
+
+class NotNullMatcher {
+ public:
+  using is_gtest_matcher = void;
+
+  // To implement a polymorphic matcher, we just need to make MatchAndExplain a
+  // template on its first argument.
+
+  // In this example, we want to use NotNull() with any pointer, so
+  // MatchAndExplain() accepts a pointer of any type as its first argument.
+  // In general, you can define MatchAndExplain() as an ordinary method or
+  // a method template, or even overload it.
+  template <typename T>
+  bool MatchAndExplain(T* p, std::ostream*) const {
+    return p != nullptr;
+  }
+
+  // Describes the property of a value matching this matcher.
+  void DescribeTo(std::ostream& os) const { *os << "is not NULL"; }
+
+  // Describes the property of a value NOT matching this matcher.
+  void DescribeNegationTo(std::ostream* os) const { *os << "is NULL"; }
+};
+
+NotNullMatcher NotNull() {
+  return NotNullMatcher();
+}
+
+...
+
+  EXPECT_CALL(foo, Bar(NotNull()));  // The argument must be a non-NULL pointer.
+```
+
+### Legacy Matcher Implementation
+
+Defining matchers used to be somewhat more complicated, in which it required
+several supporting classes and virtual functions. To implement a matcher for
+type `T` using the legacy API you have to derive from `MatcherInterface<T>` and
+call `MakeMatcher` to construct the object.
 
 The interface looks like this:
 
@@ -3587,83 +3742,6 @@ class MatcherInterface {
   virtual void DescribeNegationTo(std::ostream* os) const;
 };
 ```
-
-If you need a custom matcher but `Truly()` is not a good option (for example,
-you may not be happy with the way `Truly(predicate)` describes itself, or you
-may want your matcher to be polymorphic as `Eq(value)` is), you can define a
-matcher to do whatever you want in two steps: first implement the matcher
-interface, and then define a factory function to create a matcher instance. The
-second step is not strictly needed but it makes the syntax of using the matcher
-nicer.
-
-For example, you can define a matcher to test whether an `int` is divisible by 7
-and then use it like this:
-
-```cpp
-using ::testing::MakeMatcher;
-using ::testing::Matcher;
-using ::testing::MatcherInterface;
-using ::testing::MatchResultListener;
-
-class DivisibleBy7Matcher : public MatcherInterface<int> {
- public:
-  bool MatchAndExplain(int n,
-                       MatchResultListener* /* listener */) const override {
-    return (n % 7) == 0;
-  }
-
-  void DescribeTo(std::ostream* os) const override {
-    *os << "is divisible by 7";
-  }
-
-  void DescribeNegationTo(std::ostream* os) const override {
-    *os << "is not divisible by 7";
-  }
-};
-
-Matcher<int> DivisibleBy7() {
-  return MakeMatcher(new DivisibleBy7Matcher);
-}
-
-...
-  EXPECT_CALL(foo, Bar(DivisibleBy7()));
-```
-
-You may improve the matcher message by streaming additional information to the
-`listener` argument in `MatchAndExplain()`:
-
-```cpp
-class DivisibleBy7Matcher : public MatcherInterface<int> {
- public:
-  bool MatchAndExplain(int n,
-                       MatchResultListener* listener) const override {
-    const int remainder = n % 7;
-    if (remainder != 0) {
-      *listener << "the remainder is " << remainder;
-    }
-    return remainder == 0;
-  }
-  ...
-};
-```
-
-Then, `EXPECT_THAT(x, DivisibleBy7());` may generate a message like this:
-
-```shell
-Value of: x
-Expected: is divisible by 7
-  Actual: 23 (the remainder is 2)
-```
-
-### Writing New Polymorphic Matchers
-
-You've learned how to write your own matchers in the previous recipe. Just one
-problem: a matcher created using `MakeMatcher()` only works for one particular
-type of arguments. If you want a *polymorphic* matcher that works with arguments
-of several types (for instance, `Eq(x)` can be used to match a *`value`* as long
-as `value == x` compiles -- *`value`* and `x` don't have to share the same
-type), you can learn the trick from `testing/base/public/gmock-matchers.h` but
-it's a bit involved.
 
 Fortunately, most of the time you can define a polymorphic matcher easily with
 the help of `MakePolymorphicMatcher()`. Here's how you can define `NotNull()` as
@@ -3721,8 +3799,8 @@ A cardinality is used in `Times()` to tell gMock how many times you expect a
 call to occur. It doesn't have to be exact. For example, you can say
 `AtLeast(5)` or `Between(2, 4)`.
 
-If the [built-in set](cheat_sheet.md#CardinalityList) of cardinalities doesn't
-suit you, you are free to define your own by implementing the following
+If the [built-in set](gmock_cheat_sheet.md#CardinalityList) of cardinalities
+doesn't suit you, you are free to define your own by implementing the following
 interface (in namespace `testing`):
 
 ```cpp
@@ -4045,22 +4123,19 @@ If you are writing a function that returns an `ACTION` object, you'll need to
 know its type. The type depends on the macro used to define the action and the
 parameter types. The rule is relatively simple:
 
+<!-- mdformat off(GitHub does not support multiline tables) -->
+
 | Given Definition              | Expression          | Has Type              |
 | ----------------------------- | ------------------- | --------------------- |
 | `ACTION(Foo)`                 | `Foo()`             | `FooAction`           |
-| `ACTION_TEMPLATE(Foo,`        | `Foo<t1, ...,       | `FooAction<t1, ...,   |
-: `HAS_m_TEMPLATE_PARAMS(...),` : t_m>()`             : t_m>`                 :
-: `AND_0_VALUE_PARAMS())`       :                     :                       :
+| `ACTION_TEMPLATE(Foo, HAS_m_TEMPLATE_PARAMS(...), AND_0_VALUE_PARAMS())` | `Foo<t1, ..., t_m>()` | `FooAction<t1, ..., t_m>` |
 | `ACTION_P(Bar, param)`        | `Bar(int_value)`    | `BarActionP<int>`     |
-| `ACTION_TEMPLATE(Bar,`        | `Bar<t1, ..., t_m>` | `FooActionP<t1, ...,  |
-: `HAS_m_TEMPLATE_PARAMS(...),` : `(int_value)`       : t_m, int>`            :
-: `AND_1_VALUE_PARAMS(p1))`     :                     :                       :
-| `ACTION_P2(Baz, p1, p2)`      | `Baz(bool_value,`   | `BazActionP2<bool,    |
-:                               : `int_value)`        : int>`                 :
-| `ACTION_TEMPLATE(Baz,`        | `Baz<t1, ..., t_m>` | `FooActionP2<t1, ..., |
-: `HAS_m_TEMPLATE_PARAMS(...),` : `(bool_value,`      : t_m,` `bool, int>`    :
-: `AND_2_VALUE_PARAMS(p1, p2))` : `int_value)`        :                       :
+| `ACTION_TEMPLATE(Bar, HAS_m_TEMPLATE_PARAMS(...), AND_1_VALUE_PARAMS(p1))` | `Bar<t1, ..., t_m>(int_value)` | `BarActionP<t1, ..., t_m, int>` |
+| `ACTION_P2(Baz, p1, p2)`      | `Baz(bool_value, int_value)` | `BazActionP2<bool, int>` |
+| `ACTION_TEMPLATE(Baz, HAS_m_TEMPLATE_PARAMS(...), AND_2_VALUE_PARAMS(p1, p2))` | `Baz<t1, ..., t_m>(bool_value, int_value)` | `BazActionP2<t1, ..., t_m, bool, int>` |
 | ...                           | ...                 | ...                   |
+
+<!-- mdformat on -->
 
 Note that we have to pick different suffixes (`Action`, `ActionP`, `ActionP2`,
 and etc) for actions with different numbers of value parameters, or the action
@@ -4210,7 +4285,7 @@ value printer.
 This printer knows how to print built-in C++ types, native arrays, STL
 containers, and any type that supports the `<<` operator. For other types, it
 prints the raw bytes in the value and hopes that you the user can figure it out.
-[googletest's advanced guide](../../googletest/docs/advanced.md#teaching-googletest-how-to-print-your-values)
+[The GoogleTest advanced guide](advanced.md#teaching-googletest-how-to-print-your-values)
 explains how to extend the printer to do a better job at printing your
 particular type than to dump the bytes.
 
@@ -4269,5 +4344,3 @@ expectations.
 Although `std::function` supports unlimited number of arguments, `MockFunction`
 implementation is limited to ten. If you ever hit that limit... well, your
 callback has bigger problems than being mockable. :-)
-
-<!-- GOOGLETEST_CM0034 DO NOT DELETE -->
