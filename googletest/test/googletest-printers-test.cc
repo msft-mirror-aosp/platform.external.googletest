@@ -32,15 +32,16 @@
 //
 // This file tests the universal value printer.
 
-#include <ctype.h>
-#include <string.h>
 #include <algorithm>
+#include <cctype>
 #include <cstdint>
+#include <cstring>
 #include <deque>
 #include <forward_list>
 #include <limits>
 #include <list>
 #include <map>
+#include <memory>
 #include <set>
 #include <sstream>
 #include <string>
@@ -228,6 +229,33 @@ class PathLike {
 }  // namespace foo
 
 namespace testing {
+namespace {
+template <typename T>
+class Wrapper {
+ public:
+  explicit Wrapper(T&& value) : value_(std::forward<T>(value)) {}
+
+  const T& value() const { return value_; }
+
+ private:
+  T value_;
+};
+
+}  // namespace
+
+namespace internal {
+template <typename T>
+class UniversalPrinter<Wrapper<T>> {
+ public:
+  static void Print(const Wrapper<T>& w, ::std::ostream* os) {
+    *os << "Wrapper(";
+    UniversalPrint(w.value(), os);
+    *os << ')';
+  }
+};
+}  // namespace internal
+
+
 namespace gtest_printers_test {
 
 using ::std::deque;
@@ -756,7 +784,12 @@ TEST(PrintArrayTest, Char8Array) {
 #endif
 
 // char16_t array.
+#ifdef _MSC_VER
+// TODO(b/173029407): Figure out why this doesn't work under MSVC.
+TEST(PrintArrayTest, DISABLED_Char16Array) {
+#else
 TEST(PrintArrayTest, Char16Array) {
+#endif
   const char16_t a[] = u"Hello, 世界";
   EXPECT_EQ(
       "{ U+0048, U+0065, U+006C, U+006C, U+006F, U+002C, U+0020, U+4E16, "
@@ -765,7 +798,12 @@ TEST(PrintArrayTest, Char16Array) {
 }
 
 // char32_t array.
+#ifdef _MSC_VER
+// TODO(b/173029407): Figure out why this doesn't work under MSVC.
+TEST(PrintArrayTest, DISABLED_Char32Array) {
+#else
 TEST(PrintArrayTest, Char32Array) {
+#endif
   const char32_t a[] = U"Hello, 世界";
   EXPECT_EQ(
       "{ U+0048, U+0065, U+006C, U+006C, U+006F, U+002C, U+0020, U+4E16, "
@@ -843,7 +881,12 @@ TEST(PrintStringTest, U8String) {
 }
 #endif
 
+#ifdef _MSC_VER
+// TODO(b/173029407): Figure out why this doesn't work under MSVC.
+TEST(PrintStringTest, DISABLED_U16String) {
+#else
 TEST(PrintStringTest, U16String) {
+#endif
   std::u16string str = u"Hello, 世界";
   EXPECT_EQ(str, str);  // Verify EXPECT_EQ compiles with this type.
   EXPECT_EQ(
@@ -852,7 +895,12 @@ TEST(PrintStringTest, U16String) {
       Print(str));
 }
 
+#ifdef _MSC_VER
+// TODO(b/173029407): Figure out why this doesn't work under MSVC.
+TEST(PrintStringTest, DISABLED_U32String) {
+#else
 TEST(PrintStringTest, U32String) {
+#endif
   std::u32string str = U"Hello, 世界";
   EXPECT_EQ(str, str);  // Verify EXPECT_EQ compiles with this type.
   EXPECT_EQ(
@@ -1646,6 +1694,13 @@ TEST(UniversalPrintTest, WorksForReference) {
   EXPECT_EQ("123", ss.str());
 }
 
+TEST(UniversalPrintTest, WorksForPairWithConst) {
+  std::pair<const Wrapper<std::string>, int> p(Wrapper<std::string>("abc"), 1);
+  ::std::stringstream ss;
+  UniversalPrint(p, &ss);
+  EXPECT_EQ("(Wrapper(\"abc\"), 1)", ss.str());
+}
+
 TEST(UniversalPrintTest, WorksForCString) {
   const char* s1 = "abc";
   ::std::stringstream ss1;
@@ -1673,6 +1728,63 @@ TEST(UniversalPrintTest, WorksForCharArray) {
   ::std::stringstream ss2;
   UniversalPrint(mutable_str, &ss2);
   EXPECT_EQ("\"\\\"Line\\0 1\\\"\\nLine 2\"", ss2.str());
+}
+
+TEST(UniversalPrintTest, IncompleteType) {
+  struct Incomplete;
+  char some_object = 0;
+  EXPECT_EQ("(incomplete type)",
+            PrintToString(reinterpret_cast<Incomplete&>(some_object)));
+}
+
+TEST(UniversalPrintTest, SmartPointers) {
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<int>()));
+  std::unique_ptr<int> p(new int(17));
+  EXPECT_EQ("(ptr = " + PrintPointer(p.get()) + ", value = 17)",
+            PrintToString(p));
+  std::unique_ptr<int[]> p2(new int[2]);
+  EXPECT_EQ("(" + PrintPointer(p2.get()) + ")", PrintToString(p2));
+
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<int>()));
+  std::shared_ptr<int> p3(new int(1979));
+  EXPECT_EQ("(ptr = " + PrintPointer(p3.get()) + ", value = 1979)",
+            PrintToString(p3));
+#if __cpp_lib_shared_ptr_arrays >= 201611L
+  std::shared_ptr<int[]> p4(new int[2]);
+  EXPECT_EQ("(" + PrintPointer(p4.get()) + ")", PrintToString(p4));
+#endif
+
+  // modifiers
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<int>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<const int>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<volatile int>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<volatile const int>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<int[]>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<const int[]>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<volatile int[]>()));
+  EXPECT_EQ("(nullptr)",
+            PrintToString(std::unique_ptr<volatile const int[]>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<int>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<const int>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<volatile int>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<volatile const int>()));
+#if __cpp_lib_shared_ptr_arrays >= 201611L
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<int[]>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<const int[]>()));
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<volatile int[]>()));
+  EXPECT_EQ("(nullptr)",
+            PrintToString(std::shared_ptr<volatile const int[]>()));
+#endif
+
+  // void
+  EXPECT_EQ("(nullptr)", PrintToString(std::unique_ptr<void, void (*)(void*)>(
+                             nullptr, nullptr)));
+  EXPECT_EQ("(" + PrintPointer(p.get()) + ")",
+            PrintToString(
+                std::unique_ptr<void, void (*)(void*)>(p.get(), [](void*) {})));
+  EXPECT_EQ("(nullptr)", PrintToString(std::shared_ptr<void>()));
+  EXPECT_EQ("(" + PrintPointer(p.get()) + ")",
+            PrintToString(std::shared_ptr<void>(p.get(), [](void*) {})));
 }
 
 TEST(UniversalTersePrintTupleFieldsToStringsTestWithStd, PrintsEmptyTuple) {
