@@ -95,8 +95,8 @@ cc_library_host_static {
     defaults: ["libgtest_host_defaults"],
 }
 
-cc_library {  // TODO: make this a cc_library_headers module
-    name: "libgtest_prod",
+cc_defaults {
+    name: "libgtest_prod_defaults",
     defaults: ["libgtest_defaults", "libgtest_host_defaults"],
     host_supported: true,
     native_bridge_supported: true,
@@ -110,6 +110,17 @@ cc_library {  // TODO: make this a cc_library_headers module
         "//apex_available:platform",
     ],
     min_sdk_version: "apex_inherit",
+}
+
+// Deprecated; use libgtest_prod_headers instead.
+cc_library {
+    name: "libgtest_prod",
+    defaults: ["libgtest_prod_defaults"],
+}
+
+cc_library_headers {
+    name: "libgtest_prod_headers",
+    defaults: ["libgtest_prod_defaults"],
 }
 
 // Tests are in the Android.mk. Run with external/googletest/run_tests.py.
