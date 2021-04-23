@@ -116,6 +116,22 @@ cc_defaults {
 cc_library {
     name: "libgtest_prod",
     defaults: ["libgtest_prod_defaults"],
+    visibility: [
+        // DO NOT ADD NEW PROJECTS. Use libgtest_prod_headers instead.
+        // TODO(b/185916167): When usage of libgtest_prod is cleaned up in a
+        //       project, remove from this list.
+        "//external/libbrillo",
+        "//external/libchrome",
+        "//frameworks/minikin/libs/minikin",
+        "//hardware/interfaces/rebootescrow/aidl/default",
+        "//packages/modules/DnsResolver",
+        "//packages/modules/StatsD:__subpackages__",
+        "//packages/services/Car:__subpackages__",
+        "//system/tools/aidl",
+        "//system/update_engine",
+        "//test/sts:__subpackages__",
+        "//tools/security/fuzzing/system_fuzzers:__subpackages__",
+    ]
 }
 
 cc_library_headers {
