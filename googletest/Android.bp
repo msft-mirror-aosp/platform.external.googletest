@@ -95,8 +95,8 @@ cc_library_host_static {
     defaults: ["libgtest_host_defaults"],
 }
 
-cc_defaults {
-    name: "libgtest_prod_defaults",
+cc_library_headers {
+    name: "libgtest_prod_headers",
     defaults: ["libgtest_defaults", "libgtest_host_defaults"],
     host_supported: true,
     native_bridge_supported: true,
@@ -110,33 +110,6 @@ cc_defaults {
         "//apex_available:platform",
     ],
     min_sdk_version: "apex_inherit",
-}
-
-// Deprecated; use libgtest_prod_headers instead.
-cc_library {
-    name: "libgtest_prod",
-    defaults: ["libgtest_prod_defaults"],
-    visibility: [
-        // DO NOT ADD NEW PROJECTS. Use libgtest_prod_headers instead.
-        // TODO(b/185916167): When usage of libgtest_prod is cleaned up in a
-        //       project, remove from this list.
-        "//external/libbrillo",
-        "//external/libchrome",
-        "//frameworks/minikin/libs/minikin",
-        "//hardware/interfaces/rebootescrow/aidl/default",
-        "//packages/modules/DnsResolver",
-        "//packages/modules/StatsD:__subpackages__",
-        "//packages/services/Car:__subpackages__",
-        "//system/tools/aidl",
-        "//system/update_engine",
-        "//test/sts:__subpackages__",
-        "//tools/security/fuzzing/system_fuzzers:__subpackages__",
-    ]
-}
-
-cc_library_headers {
-    name: "libgtest_prod_headers",
-    defaults: ["libgtest_prod_defaults"],
 }
 
 // Tests are in the Android.mk. Run with external/googletest/run_tests.py.
