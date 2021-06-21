@@ -95,8 +95,8 @@ cc_library_host_static {
     defaults: ["libgtest_host_defaults"],
 }
 
-cc_library {  // TODO: make this a cc_library_headers module
-    name: "libgtest_prod",
+cc_library_headers {
+    name: "libgtest_prod_headers",
     defaults: ["libgtest_defaults", "libgtest_host_defaults"],
     host_supported: true,
     native_bridge_supported: true,
