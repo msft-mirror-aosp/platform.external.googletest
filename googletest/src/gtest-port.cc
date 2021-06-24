@@ -80,6 +80,10 @@
 # include <zircon/syscalls.h>
 #endif  // GTEST_OS_FUCHSIA
 
+#if GTEST_OS_IOS
+#import <Foundation/Foundation.h>
+#endif  // GTEST_OS_IOS
+
 #include "gtest/gtest-spi.h"
 #include "gtest/gtest-message.h"
 #include "gtest/internal/gtest-internal.h"
@@ -1111,9 +1115,15 @@ class CapturedStream {
     // guaranteed to be mounted, or may have a delay in mounting.
     ::std::string name_template_buf = TempDir() + "gtest_captured_stream.XXXXXX";
     char* name_template = &name_template_buf[0];
+#  elif GTEST_OS_IOS
+    NSString* temp_path = [NSTemporaryDirectory()
+        stringByAppendingPathComponent:@"gtest_captured_stream.XXXXXX"];
+
+    char name_template[PATH_MAX + 1];
+    strncpy(name_template, [temp_path UTF8String], PATH_MAX);
 #  else
     char name_template[] = "/tmp/captured_stream.XXXXXX";
-#  endif  // GTEST_OS_LINUX_ANDROID
+#  endif
     const int captured_fd = mkstemp(name_template);
     if (captured_fd == -1) {
       GTEST_LOG_(WARNING)
