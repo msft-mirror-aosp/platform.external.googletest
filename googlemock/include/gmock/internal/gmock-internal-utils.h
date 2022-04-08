@@ -36,8 +36,8 @@
 
 // GOOGLETEST_CM0002 DO NOT DELETE
 
-#ifndef GOOGLEMOCK_INCLUDE_GMOCK_INTERNAL_GMOCK_INTERNAL_UTILS_H_
-#define GOOGLEMOCK_INCLUDE_GMOCK_INTERNAL_GMOCK_INTERNAL_UTILS_H_
+#ifndef GMOCK_INCLUDE_GMOCK_INTERNAL_GMOCK_INTERNAL_UTILS_H_
+#define GMOCK_INCLUDE_GMOCK_INTERNAL_GMOCK_INTERNAL_UTILS_H_
 
 #include <stdio.h>
 #include <ostream>  // NOLINT
@@ -70,6 +70,20 @@ GTEST_API_ std::string JoinAsTuple(const Strings& fields);
 // treated as one word.  For example, both "FooBar123" and
 // "foo_bar_123" are converted to "foo bar 123".
 GTEST_API_ std::string ConvertIdentifierNameToWords(const char* id_name);
+
+// PointeeOf<Pointer>::type is the type of a value pointed to by a
+// Pointer, which can be either a smart pointer or a raw pointer.  The
+// following default implementation is for the case where Pointer is a
+// smart pointer.
+template <typename Pointer>
+struct PointeeOf {
+  // Smart pointer classes define type element_type as the type of
+  // their pointees.
+  typedef typename Pointer::element_type type;
+};
+// This specialization is for the raw pointer case.
+template <typename T>
+struct PointeeOf<T*> { typedef T type; };  // NOLINT
 
 // GetRawPointer(p) returns the raw pointer underlying p when p is a
 // smart pointer, or returns p itself when p is already a raw pointer.
@@ -364,8 +378,7 @@ template <typename ElementPointer, typename Size>
 class StlContainerView< ::std::tuple<ElementPointer, Size> > {
  public:
   typedef typename std::remove_const<
-      typename std::pointer_traits<ElementPointer>::element_type>::type
-      RawElement;
+      typename internal::PointeeOf<ElementPointer>::type>::type RawElement;
   typedef internal::NativeArray<RawElement> type;
   typedef const type const_reference;
 
@@ -409,13 +422,11 @@ auto ApplyImpl(F&& f, Tuple&& args, IndexSequence<Idx...>) -> decltype(
 
 // Apply the function to a tuple of arguments.
 template <typename F, typename Tuple>
-auto Apply(F&& f, Tuple&& args) -> decltype(
-    ApplyImpl(std::forward<F>(f), std::forward<Tuple>(args),
-              MakeIndexSequence<std::tuple_size<
-                  typename std::remove_reference<Tuple>::type>::value>())) {
+auto Apply(F&& f, Tuple&& args)
+    -> decltype(ApplyImpl(std::forward<F>(f), std::forward<Tuple>(args),
+                          MakeIndexSequence<std::tuple_size<Tuple>::value>())) {
   return ApplyImpl(std::forward<F>(f), std::forward<Tuple>(args),
-                   MakeIndexSequence<std::tuple_size<
-                       typename std::remove_reference<Tuple>::type>::value>());
+                   MakeIndexSequence<std::tuple_size<Tuple>::value>());
 }
 
 // Template struct Function<F>, where F must be a function type, contains
@@ -456,4 +467,4 @@ constexpr size_t Function<R(Args...)>::ArgumentCount;
 }  // namespace internal
 }  // namespace testing
 
-#endif  // GOOGLEMOCK_INCLUDE_GMOCK_INTERNAL_GMOCK_INTERNAL_UTILS_H_
+#endif  // GMOCK_INCLUDE_GMOCK_INTERNAL_GMOCK_INTERNAL_UTILS_H_

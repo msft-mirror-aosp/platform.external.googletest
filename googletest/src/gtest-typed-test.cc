@@ -35,6 +35,8 @@
 namespace testing {
 namespace internal {
 
+#if GTEST_HAS_TYPED_TEST_P
+
 // Skips to the first non-space char in str. Returns an empty string if str
 // contains only whitespace characters.
 static const char* SkipSpaces(const char* str) {
@@ -76,7 +78,17 @@ const char* TypedTestSuitePState::VerifyRegisteredTestNames(
       continue;
     }
 
-    if (registered_tests_.count(name) != 0) {
+    bool found = false;
+    for (RegisteredTestIter it = registered_tests_.begin();
+         it != registered_tests_.end();
+         ++it) {
+      if (name == it->first) {
+        found = true;
+        break;
+      }
+    }
+
+    if (found) {
       tests.insert(name);
     } else {
       errors << "No test named " << name
@@ -102,6 +114,8 @@ const char* TypedTestSuitePState::VerifyRegisteredTestNames(
 
   return registered_tests;
 }
+
+#endif  // GTEST_HAS_TYPED_TEST_P
 
 }  // namespace internal
 }  // namespace testing

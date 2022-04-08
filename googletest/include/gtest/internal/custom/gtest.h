@@ -31,10 +31,10 @@
 //
 // ** Custom implementation starts here **
 
-#ifndef GOOGLETEST_INCLUDE_GTEST_INTERNAL_CUSTOM_GTEST_H_
-#define GOOGLETEST_INCLUDE_GTEST_INTERNAL_CUSTOM_GTEST_H_
+#ifndef GTEST_INCLUDE_GTEST_INTERNAL_CUSTOM_GTEST_H_
+#define GTEST_INCLUDE_GTEST_INTERNAL_CUSTOM_GTEST_H_
 
-#if GTEST_OS_LINUX_ANDROID
+#if !GTEST_OS_WINDOWS
 # define GTEST_CUSTOM_TEMPDIR_FUNCTION_ GetAndroidTempDir
 # include <unistd.h>
 static inline std::string GetAndroidTempDir() {
@@ -54,6 +54,6 @@ static inline std::string GetAndroidTempDir() {
   }
   return result;
 }
-#endif //GTEST_OS_LINUX_ANDROID
+#endif //GTEST_OS_WINDOWS
 
-#endif  // GOOGLETEST_INCLUDE_GTEST_INTERNAL_CUSTOM_GTEST_H_
+#endif  // GTEST_INCLUDE_GTEST_INTERNAL_CUSTOM_GTEST_H_
