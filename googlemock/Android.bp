@@ -87,6 +87,8 @@ cc_library_static {
     rtti: true,
     static_libs: ["libgtest"],
     vendor_available: true,
+    product_available: true,
+    native_bridge_supported: true,
 }
 
 cc_library_static {
@@ -98,6 +100,8 @@ cc_library_static {
     srcs: ["src/gmock_main.cc"],
     static_libs: ["libgtest"],
     vendor_available: true,
+    product_available: true,
+    native_bridge_supported: true,
 }
 
 // Deprecated: use libgmock instead
