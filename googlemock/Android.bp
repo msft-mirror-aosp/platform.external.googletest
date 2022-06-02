@@ -34,6 +34,9 @@ cc_defaults {
         "-Wno-missing-field-initializers",
         "-Wno-sign-compare",
         "-Wno-unused-parameter",
+        // We need to generate exception tables, otherwise any users of this
+        // library that use testing::Throw will trigger undefined behaviour.
+        "-fexceptions",
     ],
 }
 
