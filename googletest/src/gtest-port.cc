@@ -1096,7 +1096,8 @@ class CapturedStream {
 # else
     // There's no guarantee that a test has write access to the current
     // directory, so we create the temporary file in the /tmp directory
-    // instead.
+    // instead. We use /tmp on most systems, and /sdcard on Android.
+    // That's because Android doesn't have /tmp.
 #  if GTEST_OS_LINUX_ANDROID
     // Note: Android applications are expected to call the framework's
     // Context.getExternalStorageDirectory() method through JNI to get
@@ -1109,8 +1110,7 @@ class CapturedStream {
     // The location /data/local/tmp is directly accessible from native code.
     // '/sdcard' and other variants cannot be relied on, as they are not
     // guaranteed to be mounted, or may have a delay in mounting.
-    ::std::string name_template_buf = TempDir() + "gtest_captured_stream.XXXXXX";
-    char* name_template = &name_template_buf[0];
+    char name_template[] = "/data/local/tmp/gtest_captured_stream.XXXXXX";
 #  else
     char name_template[] = "/tmp/captured_stream.XXXXXX";
 #  endif  // GTEST_OS_LINUX_ANDROID
