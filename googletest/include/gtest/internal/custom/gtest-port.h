@@ -34,6 +34,11 @@
 #ifndef GOOGLETEST_INCLUDE_GTEST_INTERNAL_CUSTOM_GTEST_PORT_H_
 #define GOOGLETEST_INCLUDE_GTEST_INTERNAL_CUSTOM_GTEST_PORT_H_
 
+// TODO: b/302409123 - <iomanip> was previously included by GTest internal
+// headers, but was recently removed. Temporarily add it here to unblock
+// upgrades.
+#include <iomanip>
+
 // Suppress warnings for deprecated *_TEST_CASE_* macros.
 #define GTEST_INTERNAL_DEPRECATED(message)
 
