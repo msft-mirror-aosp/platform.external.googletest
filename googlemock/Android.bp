@@ -44,7 +44,7 @@ cc_defaults {
     name: "gmock_ndk",
     sdk_version: "9",
     stl: "c++_static",
-    cppflags: ["-std=c++11"],
+    cpp_std: "c++14",
 }
 
 cc_defaults {
