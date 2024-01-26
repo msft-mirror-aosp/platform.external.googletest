@@ -1050,7 +1050,7 @@ class StartsWithMatcher {
   template <typename MatcheeStringType>
   bool MatchAndExplain(const MatcheeStringType& s,
                        MatchResultListener* /* listener */) const {
-    const StringType& s2(s);
+    const StringType s2(s);
     return s2.length() >= prefix_.length() &&
            s2.substr(0, prefix_.length()) == prefix_;
   }
@@ -1104,7 +1104,7 @@ class EndsWithMatcher {
   template <typename MatcheeStringType>
   bool MatchAndExplain(const MatcheeStringType& s,
                        MatchResultListener* /* listener */) const {
-    const StringType& s2(s);
+    const StringType s2(s);
     return s2.length() >= suffix_.length() &&
            s2.substr(s2.length() - suffix_.length()) == suffix_;
   }
