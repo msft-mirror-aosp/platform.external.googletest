@@ -45,39 +45,22 @@ cc_defaults {
 }
 
 cc_test {
-    name: "gmock_tests",
+    name: "gmock_all_test",
     defaults: ["gmock_test_defaults"],
-    test_per_src: true,
-    srcs: [
-        "gmock-actions_test.cc",
-        "gmock-cardinalities_test.cc",
-
-        // Test is disabled because Android doesn't build gmock with exceptions.
-        //"gmock_ex_test.cc",
-
-        "gmock-function-mocker_test.cc",
-        "gmock-internal-utils_test.cc",
-        "gmock-matchers-arithmetic_test.cc",
-        "gmock-matchers-comparisons_test.cc",
-        "gmock-matchers-containers_test.cc",
-        "gmock-matchers-misc_test.cc",
-        "gmock-more-actions_test.cc",
-        "gmock-nice-strict_test.cc",
-        "gmock-port_test.cc",
-        "gmock-pp_test.cc",
-        "gmock-pp-string_test.cc",
-        "gmock-spec-builders_test.cc",
-        "gmock_test.cc",
-    ],
+    srcs: ["gmock-*.cc"],
 }
 
 cc_test {
     name: "gmock_link_test",
     defaults: ["gmock_test_defaults"],
-    relative_install_path: "gmock_tests",
-    no_named_install_directory: true,
     srcs: [
         "gmock_link_test.cc",
         "gmock_link2_test.cc",
     ],
+}
+
+cc_test {
+    name: "gmock_test",
+    defaults: ["gmock_test_defaults"],
+    srcs: ["gmock_test.cc"],
 }
