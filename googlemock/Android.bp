@@ -44,7 +44,7 @@ cc_defaults {
     name: "gmock_ndk",
     sdk_version: "9",
     stl: "c++_static",
-    cppflags: ["-std=c++11"],
+    cpp_std: "c++14",
 }
 
 cc_defaults {
@@ -92,6 +92,7 @@ cc_library_static {
     vendor_available: true,
     product_available: true,
     native_bridge_supported: true,
+    cmake_snapshot_supported: true,
 }
 
 cc_library_static {
@@ -105,6 +106,7 @@ cc_library_static {
     vendor_available: true,
     product_available: true,
     native_bridge_supported: true,
+    cmake_snapshot_supported: true,
 }
 
 // Deprecated: use libgmock instead
