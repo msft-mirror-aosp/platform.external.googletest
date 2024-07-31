@@ -122,9 +122,7 @@ TEST(OutputFileHelpersTest, GetCurrentExecutableName) {
       exe_str == "lt-gtest_all_test" ||
       exe_str == "gtest_dll_test"
 #ifdef __ANDROID__
-      || exe_str == "gtest-options_test_ndk_c++" ||
-      exe_str == "gtest-options_test_ndk_gnustl" ||
-      exe_str == "gtest-options_test_ndk_stlport"
+      || exe_str == "gtest_all_test_ndk"
 #endif
       ;
 #endif  // GTEST_OS_WINDOWS
