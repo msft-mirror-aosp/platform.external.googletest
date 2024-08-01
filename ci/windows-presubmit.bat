@@ -46,11 +46,17 @@ RMDIR /S /Q cmake_msvc2022
 :: ----------------------------------------------------------------------------
 :: Bazel
 
+:: The default home directory on Kokoro is a long path which causes errors
+:: because of Windows limitations on path length.
+:: --output_user_root=C:\tmp causes Bazel to use a shorter path.
 SET BAZEL_VS=C:\Program Files\Microsoft Visual Studio\2022\Community
-%BAZEL_EXE% test ... ^
+%BAZEL_EXE% ^
+  --output_user_root=C:\tmp ^
+  test ... ^
   --compilation_mode=dbg ^
   --copt=/std:c++14 ^
   --copt=/WX ^
+  --enable_bzlmod=true ^
   --keep_going ^
   --test_output=errors ^
   --test_tag_filters=-no_test_msvc2017
