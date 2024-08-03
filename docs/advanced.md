@@ -1004,11 +1004,21 @@ calling the `::testing::AddGlobalTestEnvironment()` function:
 Environment* AddGlobalTestEnvironment(Environment* env);
 ```
 
-Now, when `RUN_ALL_TESTS()` is called, it first calls the `SetUp()` method of
-each environment object, then runs the tests if none of the environments
-reported fatal failures and `GTEST_SKIP()` was not called. `RUN_ALL_TESTS()`
-always calls `TearDown()` with each environment object, regardless of whether or
-not the tests were run.
+Now, when `RUN_ALL_TESTS()` is invoked, it first calls the `SetUp()` method. The
+tests are then executed, provided that none of the environments have reported
+fatal failures and `GTEST_SKIP()` has not been invoked. Finally, `TearDown()` is
+called.
+
+Note that `SetUp()` and `TearDown()` are only invoked if there is at least one
+test to be performed. Importantly, `TearDown()` is executed even if the test is
+not run due to a fatal failure or `GTEST_SKIP()`.
+
+Calling `SetUp()` and `TearDown()` for each iteration depends on the flag
+`gtest_recreate_environments_when_repeating`. `SetUp()` and `TearDown()` are
+called for each environment object when the object is recreated for each
+iteration. However, if test environments are not recreated for each iteration,
+`SetUp()` is called only on the first iteration, and `TearDown()` is called only
+on the last iteration.
 
 It's OK to register multiple environment objects. In this suite, their `SetUp()`
 will be called in the order they are registered, and their `TearDown()` will be
@@ -1804,7 +1814,7 @@ and/or command line flags. For the flags to work, your programs must call
 `::testing::InitGoogleTest()` before calling `RUN_ALL_TESTS()`.
 
 To see a list of supported flags and their usage, please run your test program
-with the `--help` flag. You can also use `-h`, `-?`, or `/?` for short.
+with the `--help` flag.
 
 If an option is specified both by an environment variable and by a flag, the
 latter takes precedence.
