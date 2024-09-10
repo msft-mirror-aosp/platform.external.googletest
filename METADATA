@@ -1,5 +1,5 @@
 # This project was upgraded with external_updater.
-# Usage: tools/external_updater/updater.sh update googletest
+# Usage: tools/external_updater/updater.sh update external/<absolute path to project>
 # For more info, check https://cs.android.com/android/platform/superproject/+/main:tools/external_updater/README.md
 
 name: "googletest"
@@ -8,13 +8,13 @@ third_party {
   license_type: NOTICE
   last_upgrade_date {
     year: 2024
-    month: 1
-    day: 23
+    month: 8
+    day: 1
   }
   homepage: "https://github.com/google/googletest"
   identifier {
     type: "Git"
     value: "https://github.com/google/googletest.git"
-    version: "563ebf1769af08d448765c31064260e1a16fcced"
+    version: "ff233bdd4cac0a0bf6e5cd45bda3406814cb2796"
   }
 }
