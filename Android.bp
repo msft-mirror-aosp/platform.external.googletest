@@ -48,3 +48,9 @@ cc_library_host_static {
     name: "googletest_cmake",
     cmake_snapshot_supported: true,
 }
+
+dirgroup {
+    name: "trusty_dirgroup_external_googletest",
+    dirs: ["."],
+    visibility: ["//trusty/vendor/google/aosp/scripts"],
+}
