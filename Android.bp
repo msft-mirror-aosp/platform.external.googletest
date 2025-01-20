@@ -42,3 +42,15 @@ license {
         "LICENSE",
     ],
 }
+
+// Phony library to mark CMakeLists.txt available for cc_cmake_snapshot
+cc_library_host_static {
+    name: "googletest_cmake",
+    cmake_snapshot_supported: true,
+}
+
+dirgroup {
+    name: "trusty_dirgroup_external_googletest",
+    dirs: ["."],
+    visibility: ["//trusty/vendor/google/aosp/scripts"],
+}
