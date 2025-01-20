@@ -36,7 +36,6 @@ cc_defaults {
     include_dirs: ["external/googletest/googletest"],
     static_libs: ["libgtest"],
     relative_install_path: "gtest_tests",
-    no_named_install_directory: true,
 }
 
 cc_defaults {
@@ -57,44 +56,104 @@ cc_defaults {
     stl: "c++_static",
 }
 
-cc_test {
-    name: "gtest_tests",
-    defaults: ["gtest_test_defaults"],
-    test_per_src: true,
+cc_defaults {
+    name: "gtest_all_test_defaults",
     srcs: [
-        "googletest-death-test-test.cc",
-        "googletest-filepath-test.cc",
+        "gtest-*.cc",
+        "googletest-*.cc",
+    ],
+    exclude_srcs: [
+        "gtest-unittest-api_test.cc",
+        "googletest/src/gtest-all.cc",
+        "gtest_all_test.cc",
+        "gtest-death-test_ex_test.cc",
+        "gtest-listener_test.cc",
+        "gtest-unittest-api_test.cc",
+        "googletest-param-test-test.cc",
+        "googletest-param-test2-test.cc",
+        "googletest-catch-exceptions-test_.cc",
+        "googletest-color-test_.cc",
+        "googletest-env-var-test_.cc",
+        "googletest-failfast-unittest_.cc",
+        "googletest-filter-unittest_.cc",
+        "googletest-global-environment-unittest_.cc",
+        "googletest-break-on-failure-unittest_.cc",
         "googletest-listener-test.cc",
         "googletest-message-test.cc",
-        "googletest-options-test.cc",
-        "googletest-port-test.cc",
-        "googletest-printers-test.cc",
-        "googletest-test-part-test.cc",
-        "gtest-unittest-api_test.cc",
-        "gtest_main_unittest.cc",
-        "gtest_pred_impl_unittest.cc",
-        "gtest_skip_test.cc",
-        "gtest_sole_header_test.cc",
-        "gtest_unittest.cc",
+        "googletest-output-test_.cc",
+        "googletest-list-tests-unittest_.cc",
+        "googletest-shuffle-test_.cc",
+        "googletest-setuptestsuite-test_.cc",
+        "googletest-uninitialized-test_.cc",
+        "googletest-death-test_ex_test.cc",
+        "googletest-param-test-test",
+        "googletest-throw-on-failure-test_.cc",
+        "googletest-param-test-invalid-name1-test_.cc",
+        "googletest-param-test-invalid-name2-test_.cc",
+    ],
+    cflags: ["-DGTEST_USE_OWN_TR1_TUPLE=1"],
+}
+
+cc_test {
+    name: "gtest_all_test",
+    defaults: [
+        "gtest_test_defaults",
+        "gtest_all_test_defaults",
     ],
     static_libs: ["libgtest_main"],
 }
 
 cc_test {
-    name: "gtest_tests_no_main",
-    defaults: ["gtest_test_defaults"],
-    test_per_src: true,
-    srcs: [
-        "gtest_environment_test.cc",
-        "gtest_no_test_unittest.cc",
-        "gtest_premature_exit_test.cc",
-        "gtest_repeat_test.cc",
-        "gtest_stress_test.cc",
-
-        // Tests are disabled because Android doesn't build gtest with exceptions
-        // "gtest_throw_on_failure_ex_test.cc",
-        // "gtest_assert_by_exception_test.cc",
+    name: "gtest_all_test_ndk",
+    defaults: [
+        "gtest_ndk_test_defaults",
+        "gtest_all_test_defaults",
     ],
+    static_libs: ["libgtest_main_ndk_c++"],
+}
+
+// Tests death tests.
+cc_test {
+    name: "googletest-death-test-test",
+    defaults: ["gtest_test_defaults"],
+    srcs: ["googletest-death-test-test.cc"],
+    static_libs: ["libgtest_main"],
+}
+
+cc_test {
+    name: "gtest_test_macro_stack_footprint_test",
+    defaults: ["gtest_test_defaults"],
+    srcs: ["gtest_test_macro_stack_footprint_test.cc"],
+    static_libs: ["libgtest"],
+}
+
+//These googletest tests have their own main()
+cc_test {
+    name: "googletest-listener-test",
+    defaults: ["gtest_test_defaults"],
+    srcs: ["googletest-listener-test.cc"],
+    static_libs: ["libgtest_main"],
+}
+
+cc_test {
+    name: "googletest-listener-test_ndk",
+    defaults: ["gtest_ndk_test_defaults"],
+    srcs: ["googletest-listener-test.cc"],
+    static_libs: ["libgtest_main_ndk_c++"],
+}
+
+cc_test {
+    name: "gtest-unittest-api_test",
+    defaults: ["gtest_test_defaults"],
+    srcs: ["gtest-unittest-api_test.cc"],
+    static_libs: ["libgtest"],
+}
+
+cc_test {
+    name: "gtest-unittest-api_test_ndk",
+    defaults: ["gtest_ndk_test_defaults"],
+    srcs: ["gtest-unittest-api_test.cc"],
+    static_libs: ["libgtest_ndk_c++"],
 }
 
 cc_test {
@@ -104,6 +163,30 @@ cc_test {
         "googletest-param-test-test.cc",
         "googletest-param-test2-test.cc",
     ],
+    static_libs: ["libgtest"],
+}
+
+cc_test {
+    name: "googletest-param-test-test_ndk",
+    defaults: ["gtest_ndk_test_defaults"],
+    srcs: [
+        "googletest-param-test-test.cc",
+        "googletest-param-test2-test.cc",
+    ],
+}
+
+cc_test {
+    name: "gtest_unittest",
+    defaults: ["gtest_test_defaults"],
+    srcs: ["gtest_unittest.cc"],
+    static_libs: ["libgtest_main"],
+}
+
+cc_test {
+    name: "gtest_unittest_ndk",
+    defaults: ["gtest_ndk_test_defaults"],
+    srcs: ["gtest_unittest.cc"],
+    static_libs: ["libgtest_main_ndk_c++"],
 }
 
 cc_test {
@@ -117,65 +200,6 @@ cc_test {
 }
 
 cc_test {
-    name: "gtest_prod_test",
-    defaults: ["gtest_test_defaults"],
-    srcs: [
-        "gtest_prod_test.cc",
-        "production.cc",
-    ],
-    static_libs: ["libgtest_main"],
-}
-
-cc_test {
-    name: "gtest_ndk_tests",
-    defaults: ["gtest_ndk_test_defaults"],
-    test_per_src: true,
-    srcs: [
-        "googletest-death-test-test.cc",
-        "googletest-filepath-test.cc",
-        "googletest-listener-test.cc",
-        "googletest-message-test.cc",
-        "googletest-options-test.cc",
-        "googletest-port-test.cc",
-        "googletest-printers-test.cc",
-        "googletest-test-part-test.cc",
-        "gtest-unittest-api_test.cc",
-        "gtest_main_unittest.cc",
-        "gtest_pred_impl_unittest.cc",
-        "gtest_skip_test.cc",
-        "gtest_sole_header_test.cc",
-        "gtest_unittest.cc",
-    ],
-    static_libs: ["libgtest_main_ndk_c++"],
-}
-
-cc_test {
-    name: "gtest_ndk_tests_no_main",
-    defaults: ["gtest_ndk_test_defaults"],
-    test_per_src: true,
-    srcs: [
-        "gtest_environment_test.cc",
-        "gtest_no_test_unittest.cc",
-        "gtest_premature_exit_test.cc",
-        "gtest_repeat_test.cc",
-        "gtest_stress_test.cc",
-
-        // Tests are disabled because Android doesn't build gtest with exceptions
-        // "gtest_throw_on_failure_ex_test.cc",
-        // "gtest_assert_by_exception_test.cc",
-    ],
-}
-
-cc_test {
-    name: "googletest-param-test-test_ndk",
-    defaults: ["gtest_ndk_test_defaults"],
-    srcs: [
-        "googletest-param-test-test.cc",
-        "googletest-param-test2-test.cc",
-    ],
-}
-
-cc_test {
     name: "gtest-typed-test_test_ndk",
     defaults: ["gtest_ndk_test_defaults"],
     srcs: [
@@ -186,11 +210,161 @@ cc_test {
 }
 
 cc_test {
+    name: "gtest_prod_test",
+    defaults: ["gtest_test_defaults"],
+    srcs: [
+        "gtest_prod_test.cc",
+        "production.cc",
+    ],
+    static_libs: ["libgtest_main"],
+}
+
+cc_test {
     name: "gtest_prod_test_ndk",
     defaults: ["gtest_ndk_test_defaults"],
     srcs: [
         "gtest_prod_test.cc",
         "production.cc",
     ],
+    static_libs: ["libgtest_main_ndk_c++"],
+}
+
+cc_test {
+    name: "gtest_skip_test",
+    defaults: ["gtest_test_defaults"],
+    srcs: ["gtest_skip_test.cc"],
+    static_libs: ["libgtest_main"],
+}
+
+cc_test {
+    name: "gtest_skip_test_ndk",
+    defaults: ["gtest_ndk_test_defaults"],
+    srcs: ["gtest_skip_test.cc"],
+    static_libs: ["libgtest_main_ndk_c++"],
+}
+
+cc_test {
+    name: "gtest_skip_in_environment_setup_test",
+    defaults: ["gtest_test_defaults"],
+    srcs: ["gtest_skip_in_environment_setup_test.cc"],
+    static_libs: ["libgtest_main"],
+}
+
+cc_test {
+    name: "gtest_skip_in_environment_setup_test_ndk",
+    defaults: ["gtest_ndk_test_defaults"],
+    srcs: ["gtest_skip_in_environment_setup_test.cc"],
+    static_libs: ["libgtest_main_ndk_c++"],
+}
+
+cc_test {
+    name: "gtest_no_test_unittest",
+    defaults: ["gtest_test_defaults"],
+    srcs: ["gtest_no_test_unittest.cc"],
+    static_libs: ["libgtest_main"],
+}
+
+cc_test {
+    name: "gtest_no_test_unittest_ndk",
+    defaults: ["gtest_ndk_test_defaults"],
+    srcs: ["gtest_no_test_unittest.cc"],
+    static_libs: ["libgtest_main_ndk_c++"],
+}
+
+cc_test {
+    name: "gtest_environment_test",
+    defaults: ["gtest_test_defaults"],
+    srcs: ["gtest_environment_test.cc"],
+    static_libs: ["libgtest"],
+}
+
+cc_test {
+    name: "gtest_environment_test_ndk",
+    defaults: ["gtest_ndk_test_defaults"],
+    srcs: ["gtest_environment_test.cc"],
+    static_libs: ["libgtest_ndk_c++"],
+}
+
+cc_test {
+    name: "gtest_premature_exit_test",
+    defaults: ["gtest_test_defaults"],
+    srcs: ["gtest_premature_exit_test.cc"],
+    static_libs: ["libgtest"],
+}
+
+cc_test {
+    name: "gtest_premature_exit_test_ndk",
+    defaults: ["gtest_ndk_test_defaults"],
+    srcs: ["gtest_premature_exit_test.cc"],
+    static_libs: ["libgtest_ndk_c++"],
+}
+
+cc_test {
+    name: "gtest_repeat_test",
+    defaults: ["gtest_test_defaults"],
+    srcs: ["gtest_repeat_test.cc"],
+    static_libs: ["libgtest"],
+}
+
+cc_test {
+    name: "gtest_repeat_test_ndk",
+    defaults: ["gtest_ndk_test_defaults"],
+    srcs: ["gtest_repeat_test.cc"],
+    static_libs: ["libgtest_ndk_c++"],
+}
+
+cc_test {
+    name: "gtest_stress_test",
+    defaults: ["gtest_test_defaults"],
+    srcs: ["gtest_stress_test.cc"],
+    static_libs: ["libgtest"],
+}
+
+cc_test {
+    name: "gtest_stress_test_ndk",
+    defaults: ["gtest_ndk_test_defaults"],
+    srcs: ["gtest_stress_test.cc"],
+    static_libs: ["libgtest_ndk_c++"],
+}
+
+cc_test {
+    name: "gtest_main_unittest",
+    defaults: ["gtest_test_defaults"],
+    srcs: ["gtest_main_unittest.cc"],
+    static_libs: ["libgtest_main"],
+}
+
+cc_test {
+    name: "gtest_main_unittest_ndk",
+    defaults: ["gtest_ndk_test_defaults"],
+    srcs: ["gtest_main_unittest.cc"],
+    static_libs: ["libgtest_main_ndk_c++"],
+}
+
+cc_test {
+    name: "gtest_pred_impl_unittest",
+    defaults: ["gtest_test_defaults"],
+    srcs: ["gtest_pred_impl_unittest.cc"],
+    static_libs: ["libgtest_main"],
+}
+
+cc_test {
+    name: "gtest_pred_impl_unittest_ndk",
+    defaults: ["gtest_ndk_test_defaults"],
+    srcs: ["gtest_pred_impl_unittest.cc"],
+    static_libs: ["libgtest_main_ndk_c++"],
+}
+
+cc_test {
+    name: "gtest_sole_header_test",
+    defaults: ["gtest_test_defaults"],
+    srcs: ["gtest_sole_header_test.cc"],
+    static_libs: ["libgtest_main"],
+}
+
+cc_test {
+    name: "gtest_sole_header_test_ndk",
+    defaults: ["gtest_ndk_test_defaults"],
+    srcs: ["gtest_sole_header_test.cc"],
     static_libs: ["libgtest_main_ndk_c++"],
 }
