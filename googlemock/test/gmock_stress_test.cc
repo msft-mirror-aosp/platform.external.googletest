@@ -30,8 +30,6 @@
 // Tests that Google Mock constructs can be used in a large number of
 // threads concurrently.
 
-#include <iterator>
-
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -190,7 +188,7 @@ TEST(StressTest, CanUseGMockWithThreads) {
       &TestPartiallyOrderedExpectationsWithThreads,
   };
 
-  const int kRoutines = std::size(test_routines);
+  const int kRoutines = sizeof(test_routines) / sizeof(test_routines[0]);
   const int kCopiesOfEachRoutine = kMaxTestThreads / kRoutines;
   const int kTestThreads = kCopiesOfEachRoutine * kRoutines;
   ThreadWithParam<Dummy>* threads[kTestThreads] = {};

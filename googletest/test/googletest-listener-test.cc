@@ -32,7 +32,6 @@
 // This file verifies Google Test event listeners receive events at the
 // right times.
 
-#include <iterator>
 #include <string>
 #include <vector>
 
@@ -499,7 +498,8 @@ int main(int argc, char** argv) {
                                          "1st.OnTestProgramEnd"};
 #endif  // GTEST_REMOVE_LEGACY_TEST_CASEAPI_
 
-  VerifyResults(events, expected_events, std::size(expected_events));
+  VerifyResults(events, expected_events,
+                sizeof(expected_events) / sizeof(expected_events[0]));
 
   // We need to check manually for ad hoc test failures that happen after
   // RUN_ALL_TESTS finishes.
