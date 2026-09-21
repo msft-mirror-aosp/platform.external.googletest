@@ -30,8 +30,6 @@
 #
 #   Bazel Build for Google C++ Testing Framework(Google Test)
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
-
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
@@ -56,16 +54,6 @@ config_setting(
 config_setting(
     name = "openbsd",
     constraint_values = ["@platforms//os:openbsd"],
-)
-
-config_setting(
-    name = "emscripten_without_threads",
-    constraint_values = [
-        "@platforms//os:emscripten",
-    ],
-    values = {
-        "features": "-use_pthreads",
-    },
 )
 
 # NOTE: Fuchsia is not an officially supported platform.
@@ -95,10 +83,6 @@ cc_library(
 )
 
 # Google Test including Google Mock
-
-# For an actual test, use `gtest` and also `gtest_main` if you depend on gtest's
-# main(). For a library, use `gtest_for_library` instead if the library can be
-# testonly.
 cc_library(
     name = "gtest",
     srcs = glob(
@@ -123,12 +107,10 @@ cc_library(
     copts = select({
         ":qnx": [],
         ":windows": [],
-        ":emscripten_without_threads": [],
         "//conditions:default": ["-pthread"],
     }),
     defines = select({
         ":has_absl": ["GTEST_HAS_ABSL=1"],
-        ":emscripten_without_threads": ["GTEST_HAS_PTHREAD=0"],
         "//conditions:default": [],
     }),
     features = select({
@@ -152,7 +134,6 @@ cc_library(
             "-lm",
             "-pthread",
         ],
-        ":emscripten_without_threads": [],
         "//conditions:default": ["-pthread"],
     }),
     deps = select({
@@ -166,7 +147,10 @@ cc_library(
             "@abseil-cpp//absl/flags:reflection",
             "@abseil-cpp//absl/flags:usage",
             "@abseil-cpp//absl/strings",
-            "@re2",
+            "@abseil-cpp//absl/types:any",
+            "@abseil-cpp//absl/types:optional",
+            "@abseil-cpp//absl/types:variant",
+            "@re2//:re2",
         ],
         "//conditions:default": [],
     }) + select({
@@ -176,22 +160,13 @@ cc_library(
         # Otherwise, builds targeting Fuchsia would fail to compile.
         ":fuchsia": [
             "@fuchsia_sdk//pkg/fdio",
+            "@fuchsia_sdk//pkg/syslog",
             "@fuchsia_sdk//pkg/zx",
         ],
         "//conditions:default": [],
     }),
 )
 
-# `gtest`, but testonly. See guidance on `gtest` for when to use this.
-alias(
-    name = "gtest_for_library",
-    testonly = True,
-    actual = ":gtest",
-)
-
-# Implements main() for tests using gtest. Prefer to depend on `gtest` as well
-# to ensure compliance with the layering_check Bazel feature where only the
-# direct hdrs values are available.
 cc_library(
     name = "gtest_main",
     srcs = ["googlemock/src/gmock_main.cc"],
@@ -200,7 +175,6 @@ cc_library(
         "//conditions:default": [],
     }),
     deps = [":gtest"],
-    alwayslink = True,
 )
 
 # The following rules build samples of how to use gTest.
