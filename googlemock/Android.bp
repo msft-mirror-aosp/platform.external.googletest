@@ -27,6 +27,7 @@ cc_defaults {
 
     local_include_dirs: ["include"],
     export_include_dirs: ["include"],
+    extra_include_dir_deps: ["src/*.cc"],
 
     cflags: [
         "-Wall",

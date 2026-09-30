@@ -24,6 +24,8 @@ package {
 cc_defaults {
     name: "libgtest_defaults",
     export_include_dirs: ["include"],
+    extra_include_dir_deps: ["src/*.cc"],
+    extra_export_include_dirs_deps: ["src/*.h"],
     cflags: ["-Wall", "-Werror", "-Wno-unused-private-field"],
 }
 
