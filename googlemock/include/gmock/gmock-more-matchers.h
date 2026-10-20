@@ -50,13 +50,18 @@ namespace testing {
 // Silence C4100 (unreferenced formal
 // parameter) for MSVC
 GTEST_DISABLE_MSC_WARNINGS_PUSH_(4100)
+#if defined(_MSC_VER) && (_MSC_VER == 1900)
+// and silence C4800 (C4800: 'int *const ': forcing value
+// to bool 'true' or 'false') for MSVC 14
+GTEST_DISABLE_MSC_WARNINGS_PUSH_(4800)
+#endif
 
 namespace internal {
 
 // Implements the polymorphic IsEmpty matcher, which
 // can be used as a Matcher<T> as long as T is either a container that defines
 // empty() and size() (e.g. std::vector or std::string), or a C-style string.
-class [[nodiscard]] IsEmptyMatcher {
+class IsEmptyMatcher {
  public:
   // Matches anything that defines empty() and size().
   template <typename MatcheeContainerType>
@@ -71,21 +76,8 @@ class [[nodiscard]] IsEmptyMatcher {
 
   // Matches C-style strings.
   bool MatchAndExplain(const char* s, MatchResultListener* listener) const {
-    if (s == nullptr) {
-      return false;
-    }
     return MatchAndExplain(std::string(s), listener);
   }
-
-#if GTEST_HAS_STD_WSTRING
-  // Matches C-style wide strings.
-  bool MatchAndExplain(const wchar_t* s, MatchResultListener* listener) const {
-    if (s == nullptr) {
-      return false;
-    }
-    return MatchAndExplain(std::wstring(s), listener);
-  }
-#endif  // GTEST_HAS_STD_WSTRING
 
   // Describes what this matcher matches.
   void DescribeTo(std::ostream* os) const { *os << "is empty"; }
@@ -118,6 +110,9 @@ MATCHER(IsFalse, negation ? "is true" : "is false") {
   return !static_cast<bool>(arg);
 }
 
+#if defined(_MSC_VER) && (_MSC_VER == 1900)
+GTEST_DISABLE_MSC_WARNINGS_POP_()  // 4800
+#endif
 GTEST_DISABLE_MSC_WARNINGS_POP_()  // 4100
 
 }  // namespace testing

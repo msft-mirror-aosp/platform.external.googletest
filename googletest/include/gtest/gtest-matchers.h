@@ -40,21 +40,26 @@
 #define GOOGLETEST_INCLUDE_GTEST_GTEST_MATCHERS_H_
 
 #include <atomic>
-#include <cstddef>
 #include <functional>
 #include <memory>
 #include <ostream>
 #include <string>
-#include <string_view>
 #include <type_traits>
 
 #include "gtest/gtest-printers.h"
 #include "gtest/internal/gtest-internal.h"
 #include "gtest/internal/gtest-port.h"
 
+// MSVC warning C5046 is new as of VS2017 version 15.8.
+#if defined(_MSC_VER) && _MSC_VER >= 1915
+#define GTEST_MAYBE_5046_ 5046
+#else
+#define GTEST_MAYBE_5046_
+#endif
+
 GTEST_DISABLE_MSC_WARNINGS_PUSH_(
-    // class A needs to have dll-interface to be used by clients of class B
-    4251 5046
+    4251 GTEST_MAYBE_5046_ /* class A needs to have dll-interface to be used by
+                              clients of class B */
     /* Symbol involving type with internal linkage not defined */)
 
 namespace testing {
@@ -62,15 +67,15 @@ namespace testing {
 // To implement a matcher Foo for type T, define:
 //   1. a class FooMatcherMatcher that implements the matcher interface:
 //     using is_gtest_matcher = void;
-//     bool MatchAndExplain(const T&, std::ostream*) const;
+//     bool MatchAndExplain(const T&, std::ostream*);
 //       (MatchResultListener* can also be used instead of std::ostream*)
-//     void DescribeTo(std::ostream*) const;
-//     void DescribeNegationTo(std::ostream*) const;
+//     void DescribeTo(std::ostream*);
+//     void DescribeNegationTo(std::ostream*);
 //
 //   2. a factory function that creates a Matcher<T> object from a
 //      FooMatcherMatcher.
 
-class [[nodiscard]] MatchResultListener {
+class MatchResultListener {
  public:
   // Creates a listener object with the given underlying ostream.  The
   // listener does not own the ostream, and does not dereference it
@@ -106,7 +111,7 @@ inline MatchResultListener::~MatchResultListener() = default;
 
 // An instance of a subclass of this knows how to describe itself as a
 // matcher.
-class GTEST_API_ [[nodiscard]] MatcherDescriberInterface {
+class GTEST_API_ MatcherDescriberInterface {
  public:
   virtual ~MatcherDescriberInterface() = default;
 
@@ -132,7 +137,7 @@ class GTEST_API_ [[nodiscard]] MatcherDescriberInterface {
 
 // The implementation of a matcher.
 template <typename T>
-class [[nodiscard]] MatcherInterface : public MatcherDescriberInterface {
+class MatcherInterface : public MatcherDescriberInterface {
  public:
   // Returns true if and only if the matcher matches x; also explains the
   // match result to 'listener' if necessary (see the next paragraph), in
@@ -175,7 +180,7 @@ class [[nodiscard]] MatcherInterface : public MatcherDescriberInterface {
 namespace internal {
 
 // A match result listener that ignores the explanation.
-class [[nodiscard]] DummyMatchResultListener : public MatchResultListener {
+class DummyMatchResultListener : public MatchResultListener {
  public:
   DummyMatchResultListener() : MatchResultListener(nullptr) {}
 
@@ -187,7 +192,7 @@ class [[nodiscard]] DummyMatchResultListener : public MatchResultListener {
 // A match result listener that forwards the explanation to a given
 // ostream.  The difference between this and MatchResultListener is
 // that the former is concrete.
-class [[nodiscard]] StreamMatchResultListener : public MatchResultListener {
+class StreamMatchResultListener : public MatchResultListener {
  public:
   explicit StreamMatchResultListener(::std::ostream* os)
       : MatchResultListener(os) {}
@@ -220,7 +225,7 @@ struct SharedPayload : SharedPayloadBase {
 // from it.  We put functionalities common to all Matcher<T>
 // specializations here to avoid code duplication.
 template <typename T>
-class [[nodiscard]] MatcherBase : private MatcherDescriberInterface {
+class MatcherBase : private MatcherDescriberInterface {
  public:
   // Returns true if and only if the matcher matches x; also explains the
   // match result to 'listener'.
@@ -271,8 +276,8 @@ class [[nodiscard]] MatcherBase : private MatcherDescriberInterface {
     Init(impl);
   }
 
-  template <typename M,
-            typename = typename std::remove_reference_t<M>::is_gtest_matcher>
+  template <typename M, typename = typename std::remove_reference<
+                            M>::type::is_gtest_matcher>
   MatcherBase(M&& m) : vtable_(nullptr), buffer_() {  // NOLINT
     Init(std::forward<M>(m));
   }
@@ -291,12 +296,12 @@ class [[nodiscard]] MatcherBase : private MatcherDescriberInterface {
     return *this;
   }
 
-  MatcherBase(MatcherBase&& other) noexcept
+  MatcherBase(MatcherBase&& other)
       : vtable_(other.vtable_), buffer_(other.buffer_) {
     other.vtable_ = nullptr;
   }
 
-  MatcherBase& operator=(MatcherBase&& other) noexcept {
+  MatcherBase& operator=(MatcherBase&& other) {
     if (this == &other) return *this;
     Destroy();
     vtable_ = other.vtable_;
@@ -357,10 +362,11 @@ class [[nodiscard]] MatcherBase : private MatcherDescriberInterface {
     // from the impl, but some users really want to get their impl back when
     // they call GetDescriber().
     // We use std::get on a tuple as a workaround of not having `if constexpr`.
-    return std::get<(std::is_convertible_v<decltype(&P::Get(m)),
-                                           const MatcherDescriberInterface*>
-                         ? 1
-                         : 0)>(std::make_tuple(&m, &P::Get(m)));
+    return std::get<(
+        std::is_convertible<decltype(&P::Get(m)),
+                            const MatcherDescriberInterface*>::value
+            ? 1
+            : 0)>(std::make_tuple(&m, &P::Get(m)));
   }
 
   template <typename P>
@@ -389,8 +395,8 @@ class [[nodiscard]] MatcherBase : private MatcherDescriberInterface {
   template <typename M>
   static constexpr bool IsInlined() {
     return sizeof(M) <= sizeof(Buffer) && alignof(M) <= alignof(Buffer) &&
-           std::is_trivially_copy_constructible_v<M> &&
-           std::is_trivially_destructible_v<M>;
+           std::is_trivially_copy_constructible<M>::value &&
+           std::is_trivially_destructible<M>::value;
   }
 
   template <typename M, bool = MatcherBase::IsInlined<M>()>
@@ -437,7 +443,7 @@ class [[nodiscard]] MatcherBase : private MatcherDescriberInterface {
 
   template <typename M>
   void Init(M&& m) {
-    using MM = std::decay_t<M>;
+    using MM = typename std::decay<M>::type;
     using Policy = ValuePolicy<MM>;
     vtable_ = GetVTable<Policy>();
     Policy::Init(*this, std::forward<M>(m));
@@ -454,7 +460,7 @@ class [[nodiscard]] MatcherBase : private MatcherDescriberInterface {
 // implementation of Matcher<T> is just a std::shared_ptr to const
 // MatcherInterface<T>.  Don't inherit from Matcher!
 template <typename T>
-class [[nodiscard]] Matcher : public internal::MatcherBase<T> {
+class Matcher : public internal::MatcherBase<T> {
  public:
   // Constructs a null matcher.  Needed for storing Matcher objects in STL
   // containers.  A default-constructed matcher is not yet initialized.  You
@@ -466,42 +472,35 @@ class [[nodiscard]] Matcher : public internal::MatcherBase<T> {
       : internal::MatcherBase<T>(impl) {}
 
   template <typename U>
-  explicit Matcher(const MatcherInterface<U>* impl,
-                   std::enable_if_t<!std::is_same_v<U, const U&>>* = nullptr)
+  explicit Matcher(
+      const MatcherInterface<U>* impl,
+      typename std::enable_if<!std::is_same<U, const U&>::value>::type* =
+          nullptr)
       : internal::MatcherBase<T>(impl) {}
 
-  template <typename M,
-            typename = typename std::remove_reference_t<M>::is_gtest_matcher>
+  template <typename M, typename = typename std::remove_reference<
+                            M>::type::is_gtest_matcher>
   Matcher(M&& m) : internal::MatcherBase<T>(std::forward<M>(m)) {}  // NOLINT
 
   // Implicit constructor here allows people to write
   // EXPECT_CALL(foo, Bar(5)) instead of EXPECT_CALL(foo, Bar(Eq(5))) sometimes
   Matcher(T value);  // NOLINT
-
-  // Implicit constructor here allows people to write
-  // EXPECT_THAT(foo, nullptr) instead of EXPECT_THAT(foo, IsNull()) for smart
-  // pointer types.
-  //
-  // The second argument is needed to avoid capturing literal '0'.
-  template <typename U>
-  Matcher(U,  // NOLINT
-          std::enable_if_t<std::is_same_v<U, std::nullptr_t>>* = nullptr);
 };
 
 // The following two specializations allow the user to write str
 // instead of Eq(str) and "foo" instead of Eq("foo") when a std::string
 // matcher is expected.
 template <>
-class GTEST_API_ [[nodiscard]]
-Matcher<const std::string&> : public internal::MatcherBase<const std::string&> {
+class GTEST_API_ Matcher<const std::string&>
+    : public internal::MatcherBase<const std::string&> {
  public:
   Matcher() = default;
 
   explicit Matcher(const MatcherInterface<const std::string&>* impl)
       : internal::MatcherBase<const std::string&>(impl) {}
 
-  template <typename M,
-            typename = typename std::remove_reference_t<M>::is_gtest_matcher>
+  template <typename M, typename = typename std::remove_reference<
+                            M>::type::is_gtest_matcher>
   Matcher(M&& m)  // NOLINT
       : internal::MatcherBase<const std::string&>(std::forward<M>(m)) {}
 
@@ -514,8 +513,8 @@ Matcher<const std::string&> : public internal::MatcherBase<const std::string&> {
 };
 
 template <>
-class GTEST_API_ [[nodiscard]]
-Matcher<std::string> : public internal::MatcherBase<std::string> {
+class GTEST_API_ Matcher<std::string>
+    : public internal::MatcherBase<std::string> {
  public:
   Matcher() = default;
 
@@ -524,8 +523,8 @@ Matcher<std::string> : public internal::MatcherBase<std::string> {
   explicit Matcher(const MatcherInterface<std::string>* impl)
       : internal::MatcherBase<std::string>(impl) {}
 
-  template <typename M,
-            typename = typename std::remove_reference_t<M>::is_gtest_matcher>
+  template <typename M, typename = typename std::remove_reference<
+                            M>::type::is_gtest_matcher>
   Matcher(M&& m)  // NOLINT
       : internal::MatcherBase<std::string>(std::forward<M>(m)) {}
 
@@ -537,11 +536,12 @@ Matcher<std::string> : public internal::MatcherBase<std::string> {
   Matcher(const char* s);  // NOLINT
 };
 
+#if GTEST_INTERNAL_HAS_STRING_VIEW
 // The following two specializations allow the user to write str
-// instead of Eq(str) and "foo" instead of Eq("foo") when a std::string_view
+// instead of Eq(str) and "foo" instead of Eq("foo") when a absl::string_view
 // matcher is expected.
 template <>
-class GTEST_API_ [[nodiscard]] Matcher<const internal::StringView&>
+class GTEST_API_ Matcher<const internal::StringView&>
     : public internal::MatcherBase<const internal::StringView&> {
  public:
   Matcher() = default;
@@ -549,8 +549,8 @@ class GTEST_API_ [[nodiscard]] Matcher<const internal::StringView&>
   explicit Matcher(const MatcherInterface<const internal::StringView&>* impl)
       : internal::MatcherBase<const internal::StringView&>(impl) {}
 
-  template <typename M,
-            typename = typename std::remove_reference_t<M>::is_gtest_matcher>
+  template <typename M, typename = typename std::remove_reference<
+                            M>::type::is_gtest_matcher>
   Matcher(M&& m)  // NOLINT
       : internal::MatcherBase<const internal::StringView&>(std::forward<M>(m)) {
   }
@@ -562,12 +562,12 @@ class GTEST_API_ [[nodiscard]] Matcher<const internal::StringView&>
   // Allows the user to write "foo" instead of Eq("foo") sometimes.
   Matcher(const char* s);  // NOLINT
 
-  // Allows the user to pass std::string_views directly.
+  // Allows the user to pass absl::string_views or std::string_views directly.
   Matcher(internal::StringView s);  // NOLINT
 };
 
 template <>
-class GTEST_API_ [[nodiscard]] Matcher<internal::StringView>
+class GTEST_API_ Matcher<internal::StringView>
     : public internal::MatcherBase<internal::StringView> {
  public:
   Matcher() = default;
@@ -577,8 +577,8 @@ class GTEST_API_ [[nodiscard]] Matcher<internal::StringView>
   explicit Matcher(const MatcherInterface<internal::StringView>* impl)
       : internal::MatcherBase<internal::StringView>(impl) {}
 
-  template <typename M,
-            typename = typename std::remove_reference_t<M>::is_gtest_matcher>
+  template <typename M, typename = typename std::remove_reference<
+                            M>::type::is_gtest_matcher>
   Matcher(M&& m)  // NOLINT
       : internal::MatcherBase<internal::StringView>(std::forward<M>(m)) {}
 
@@ -589,9 +589,10 @@ class GTEST_API_ [[nodiscard]] Matcher<internal::StringView>
   // Allows the user to write "foo" instead of Eq("foo") sometimes.
   Matcher(const char* s);  // NOLINT
 
-  // Allows the user to pass std::string_views directly.
+  // Allows the user to pass absl::string_views or std::string_views directly.
   Matcher(internal::StringView s);  // NOLINT
 };
+#endif  // GTEST_INTERNAL_HAS_STRING_VIEW
 
 // Prints a matcher in a human-readable format.
 template <typename T>
@@ -613,7 +614,7 @@ std::ostream& operator<<(std::ostream& os, const Matcher<T>& matcher) {
 //
 // See the definition of NotNull() for a complete example.
 template <class Impl>
-class [[nodiscard]] PolymorphicMatcher {
+class PolymorphicMatcher {
  public:
   explicit PolymorphicMatcher(const Impl& an_impl) : impl_(an_impl) {}
 
@@ -688,7 +689,7 @@ namespace internal {
 // The following template definition assumes that the Rhs parameter is
 // a "bare" type (i.e. neither 'const T' nor 'T&').
 template <typename D, typename Rhs, typename Op>
-class [[nodiscard]] ComparisonBase {
+class ComparisonBase {
  public:
   explicit ComparisonBase(const Rhs& rhs) : rhs_(rhs) {}
 
@@ -721,8 +722,7 @@ class [[nodiscard]] ComparisonBase {
 };
 
 template <typename Rhs>
-class [[nodiscard]] EqMatcher
-    : public ComparisonBase<EqMatcher<Rhs>, Rhs, std::equal_to<>> {
+class EqMatcher : public ComparisonBase<EqMatcher<Rhs>, Rhs, std::equal_to<>> {
  public:
   explicit EqMatcher(const Rhs& rhs)
       : ComparisonBase<EqMatcher<Rhs>, Rhs, std::equal_to<>>(rhs) {}
@@ -730,7 +730,7 @@ class [[nodiscard]] EqMatcher
   static const char* NegatedDesc() { return "isn't equal to"; }
 };
 template <typename Rhs>
-class [[nodiscard]] NeMatcher
+class NeMatcher
     : public ComparisonBase<NeMatcher<Rhs>, Rhs, std::not_equal_to<>> {
  public:
   explicit NeMatcher(const Rhs& rhs)
@@ -739,8 +739,7 @@ class [[nodiscard]] NeMatcher
   static const char* NegatedDesc() { return "is equal to"; }
 };
 template <typename Rhs>
-class [[nodiscard]] LtMatcher
-    : public ComparisonBase<LtMatcher<Rhs>, Rhs, std::less<>> {
+class LtMatcher : public ComparisonBase<LtMatcher<Rhs>, Rhs, std::less<>> {
  public:
   explicit LtMatcher(const Rhs& rhs)
       : ComparisonBase<LtMatcher<Rhs>, Rhs, std::less<>>(rhs) {}
@@ -748,8 +747,7 @@ class [[nodiscard]] LtMatcher
   static const char* NegatedDesc() { return "isn't <"; }
 };
 template <typename Rhs>
-class [[nodiscard]] GtMatcher
-    : public ComparisonBase<GtMatcher<Rhs>, Rhs, std::greater<>> {
+class GtMatcher : public ComparisonBase<GtMatcher<Rhs>, Rhs, std::greater<>> {
  public:
   explicit GtMatcher(const Rhs& rhs)
       : ComparisonBase<GtMatcher<Rhs>, Rhs, std::greater<>>(rhs) {}
@@ -757,7 +755,7 @@ class [[nodiscard]] GtMatcher
   static const char* NegatedDesc() { return "isn't >"; }
 };
 template <typename Rhs>
-class [[nodiscard]] LeMatcher
+class LeMatcher
     : public ComparisonBase<LeMatcher<Rhs>, Rhs, std::less_equal<>> {
  public:
   explicit LeMatcher(const Rhs& rhs)
@@ -766,7 +764,7 @@ class [[nodiscard]] LeMatcher
   static const char* NegatedDesc() { return "isn't <="; }
 };
 template <typename Rhs>
-class [[nodiscard]] GeMatcher
+class GeMatcher
     : public ComparisonBase<GeMatcher<Rhs>, Rhs, std::greater_equal<>> {
  public:
   explicit GeMatcher(const Rhs& rhs)
@@ -775,68 +773,24 @@ class [[nodiscard]] GeMatcher
   static const char* NegatedDesc() { return "isn't >="; }
 };
 
-// Same as `EqMatcher<Rhs>`, except that the `rhs` is stored as `StoredRhs` and
-// must be implicitly convertible to `Rhs`.
-template <typename Rhs, typename StoredRhs>
-class [[nodiscard]] ImplicitCastEqMatcher {
- public:
-  explicit ImplicitCastEqMatcher(const StoredRhs& rhs) : stored_rhs_(rhs) {}
-
-  using is_gtest_matcher = void;
-
-  template <typename Lhs>
-  bool MatchAndExplain(const Lhs& lhs, std::ostream*) const {
-    return lhs == rhs();
-  }
-
-  void DescribeTo(std::ostream* os) const {
-    *os << "is equal to ";
-    UniversalPrint(rhs(), os);
-  }
-  void DescribeNegationTo(std::ostream* os) const {
-    *os << "isn't equal to ";
-    UniversalPrint(rhs(), os);
-  }
-
- private:
-  Rhs rhs() const { return ImplicitCast_<Rhs>(stored_rhs_); }
-
-  StoredRhs stored_rhs_;
-};
-
-// Dummy function (never defined) whose return type evaluates to std::string if
-// the given type is a string-like type that can be converted to std::string,
-// either directly or through an intermediate std::string_view.
-template <class T>
-extern std::enable_if_t<std::is_constructible_v<std::string, T>, std::string>
-ResolveAsString(const void* /* preferred */);
-
-#if GTEST_HAS_STD_WSTRING
-// Same as above, but for std::wstring. In cases where both conversions are
-// possible, this overload takes lower priority.
-template <class T>
-extern std::enable_if_t<std::is_constructible_v<std::wstring, T>, std::wstring>
-ResolveAsString(... /* fallback */);
-#endif
-
-// Evaluates to the std::basic_string type that the given string-like type can
-// be converted to. Prefers std::string over std::wstring if both are possible.
-// Fails in a SFINAE-friendly way if no conversion was viable.
-template <typename T>
-using StringType = decltype(ResolveAsString<T>(nullptr));
+template <typename T, typename = typename std::enable_if<
+                          std::is_constructible<std::string, T>::value>::type>
+using StringLike = T;
 
 // Implements polymorphic matchers MatchesRegex(regex) and
 // ContainsRegex(regex), which can be used as a Matcher<T> as long as
 // T can be converted to a string.
-class [[nodiscard]] MatchesRegexMatcher {
+class MatchesRegexMatcher {
  public:
   MatchesRegexMatcher(const RE* regex, bool full_match)
       : regex_(regex), full_match_(full_match) {}
 
+#if GTEST_INTERNAL_HAS_STRING_VIEW
   bool MatchAndExplain(const internal::StringView& s,
                        MatchResultListener* listener) const {
     return MatchAndExplain(std::string(s), listener);
   }
+#endif  // GTEST_INTERNAL_HAS_STRING_VIEW
 
   // Accepts pointer types, particularly:
   //   const char*
@@ -851,7 +805,7 @@ class [[nodiscard]] MatchesRegexMatcher {
   // Matches anything that can convert to std::string.
   //
   // This is a template, not just a plain function with const std::string&,
-  // because std::string_view has some interfering non-explicit constructors.
+  // because absl::string_view has some interfering non-explicit constructors.
   template <class MatcheeStringType>
   bool MatchAndExplain(const MatcheeStringType& s,
                        MatchResultListener* /* listener */) const {
@@ -884,10 +838,9 @@ inline PolymorphicMatcher<internal::MatchesRegexMatcher> MatchesRegex(
   return MakePolymorphicMatcher(internal::MatchesRegexMatcher(regex, true));
 }
 template <typename T = std::string>
-std::enable_if_t<std::is_constructible_v<internal::RE, internal::StringType<T>>,
-                 PolymorphicMatcher<internal::MatchesRegexMatcher>>
-MatchesRegex(const T& regex) {
-  return MatchesRegex(new internal::RE(internal::StringType<T>(regex)));
+PolymorphicMatcher<internal::MatchesRegexMatcher> MatchesRegex(
+    const internal::StringLike<T>& regex) {
+  return MatchesRegex(new internal::RE(std::string(regex)));
 }
 
 // Matches a string that contains regular expression 'regex'.
@@ -897,10 +850,9 @@ inline PolymorphicMatcher<internal::MatchesRegexMatcher> ContainsRegex(
   return MakePolymorphicMatcher(internal::MatchesRegexMatcher(regex, false));
 }
 template <typename T = std::string>
-std::enable_if_t<std::is_constructible_v<internal::RE, internal::StringType<T>>,
-                 PolymorphicMatcher<internal::MatchesRegexMatcher>>
-ContainsRegex(const T& regex) {
-  return ContainsRegex(new internal::RE(internal::StringType<T>(regex)));
+PolymorphicMatcher<internal::MatchesRegexMatcher> ContainsRegex(
+    const internal::StringLike<T>& regex) {
+  return ContainsRegex(new internal::RE(std::string(regex)));
 }
 
 // Creates a polymorphic matcher that matches anything equal to x.
@@ -911,19 +863,11 @@ inline internal::EqMatcher<T> Eq(T x) {
   return internal::EqMatcher<T>(x);
 }
 
-// Constructs a Matcher<T> from a 'value' of type T. The constructed
+// Constructs a Matcher<T> from a 'value' of type T.  The constructed
 // matcher matches any value that's equal to 'value'.
 template <typename T>
 Matcher<T>::Matcher(T value) {
   *this = Eq(value);
-}
-
-// Constructs a Matcher<T> from nullptr. The constructed matcher matches any
-// value that is equal to nullptr.
-template <typename T>
-template <typename U>
-Matcher<T>::Matcher(U, std::enable_if_t<std::is_same_v<U, std::nullptr_t>>*) {
-  *this = Eq(nullptr);
 }
 
 // Creates a monomorphic matcher that matches anything with type Lhs

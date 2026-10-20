@@ -62,11 +62,10 @@
 #include "absl/flags/flag.h"
 #endif
 
-// For MS Visual C++, check the compiler version. At least VS 2022 is
-// required to compile Google Mock (_MSC_VER >= 1930). We use a slightly lower
-// version for internal toolchains lagging behind.
-#if defined(_MSC_VER) && _MSC_VER < 1925
-#error "At least Visual C++ 2022 (17.0) is required to compile Google Mock."
+// For MS Visual C++, check the compiler version. At least VS 2015 is
+// required to compile Google Mock.
+#if defined(_MSC_VER) && _MSC_VER < 1900
+#error "At least Visual C++ 2015 (14.0) is required to compile Google Mock."
 #endif
 
 // Macro for referencing flags.  This is public as we want the user to
@@ -87,11 +86,11 @@
 
 // Macros for declaring flags.
 #define GMOCK_DECLARE_bool_(name) \
-  GTEST_API_ ABSL_DECLARE_FLAG(bool, GMOCK_FLAG_NAME_(name))
+  ABSL_DECLARE_FLAG(bool, GMOCK_FLAG_NAME_(name))
 #define GMOCK_DECLARE_int32_(name) \
-  GTEST_API_ ABSL_DECLARE_FLAG(int32_t, GMOCK_FLAG_NAME_(name))
+  ABSL_DECLARE_FLAG(int32_t, GMOCK_FLAG_NAME_(name))
 #define GMOCK_DECLARE_string_(name) \
-  GTEST_API_ ABSL_DECLARE_FLAG(std::string, GMOCK_FLAG_NAME_(name))
+  ABSL_DECLARE_FLAG(std::string, GMOCK_FLAG_NAME_(name))
 
 #define GMOCK_FLAG_GET(name) ::absl::GetFlag(GMOCK_FLAG(name))
 #define GMOCK_FLAG_SET(name, value) \
