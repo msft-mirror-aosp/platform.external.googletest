@@ -105,54 +105,10 @@ GTEST_API_ bool InDeathTestChild();
 //
 // On the regular expressions used in death tests:
 //
-//   On POSIX-compliant systems (*nix), we use the <regex.h> library,
-//   which uses the POSIX extended regex syntax.
-//
-//   On other platforms (e.g. Windows or Mac), we only support a simple regex
-//   syntax implemented as part of Google Test.  This limited
-//   implementation should be enough most of the time when writing
-//   death tests; though it lacks many features you can find in PCRE
-//   or POSIX extended regex syntax.  For example, we don't support
-//   union ("x|y"), grouping ("(xy)"), brackets ("[xy]"), and
-//   repetition count ("x{5,7}"), among others.
-//
-//   Below is the syntax that we do support.  We chose it to be a
-//   subset of both PCRE and POSIX extended regex, so it's easy to
-//   learn wherever you come from.  In the following: 'A' denotes a
-//   literal character, period (.), or a single \\ escape sequence;
-//   'x' and 'y' denote regular expressions; 'm' and 'n' are for
-//   natural numbers.
-//
-//     c     matches any literal character c
-//     \\d   matches any decimal digit
-//     \\D   matches any character that's not a decimal digit
-//     \\f   matches \f
-//     \\n   matches \n
-//     \\r   matches \r
-//     \\s   matches any ASCII whitespace, including \n
-//     \\S   matches any character that's not a whitespace
-//     \\t   matches \t
-//     \\v   matches \v
-//     \\w   matches any letter, _, or decimal digit
-//     \\W   matches any character that \\w doesn't match
-//     \\c   matches any literal character c, which must be a punctuation
-//     .     matches any single character except \n
-//     A?    matches 0 or 1 occurrences of A
-//     A*    matches 0 or many occurrences of A
-//     A+    matches 1 or many occurrences of A
-//     ^     matches the beginning of a string (not that of each line)
-//     $     matches the end of a string (not that of each line)
-//     xy    matches x followed by y
-//
-//   If you accidentally use PCRE or POSIX extended regex features
-//   not implemented by us, you will get a run-time failure.  In that
-//   case, please try to rewrite your regular expression within the
-//   above syntax.
-//
-//   This implementation is *not* meant to be as highly tuned or robust
-//   as a compiled regex library, but should perform well enough for a
-//   death test, which already incurs significant overhead by launching
-//   a child process.
+//   Depending on the platform, this may use RE2, the POSIX <regex.h> library,
+//   the C++11 standard library's <regex> engine with ECMAScript syntax, or
+//   another similar engine. Regular expressions should be simple and portable
+//   enough to work across the engines of interest.
 //
 // Known caveats:
 //
@@ -192,7 +148,7 @@ GTEST_API_ bool InDeathTestChild();
 // Two predicate classes that can be used in {ASSERT,EXPECT}_EXIT*:
 
 // Tests that an exit code describes a normal exit with a given exit code.
-class GTEST_API_ ExitedWithCode {
+class GTEST_API_ [[nodiscard]] ExitedWithCode {
  public:
   explicit ExitedWithCode(int exit_code);
   ExitedWithCode(const ExitedWithCode&) = default;
@@ -206,7 +162,7 @@ class GTEST_API_ ExitedWithCode {
 #if !defined(GTEST_OS_WINDOWS) && !defined(GTEST_OS_FUCHSIA)
 // Tests that an exit code describes an exit due to termination by a
 // given signal.
-class GTEST_API_ KilledBySignal {
+class GTEST_API_ [[nodiscard]] KilledBySignal {
  public:
   explicit KilledBySignal(int signum);
   bool operator()(int exit_status) const;
@@ -317,7 +273,7 @@ class GTEST_API_ KilledBySignal {
     GTEST_LOG_(WARNING) << "Death tests are not supported on this platform.\n" \
                         << "Statement '" #statement "' cannot be verified.";   \
   } else if (::testing::internal::AlwaysFalse()) {                             \
-    ::testing::internal::MakeDeathTestMatcher(regex_or_matcher);               \
+    (void)::testing::internal::MakeDeathTestMatcher(regex_or_matcher);         \
     GTEST_SUPPRESS_UNREACHABLE_CODE_WARNING_BELOW_(statement);                 \
     terminator;                                                                \
   } else                                                                       \
